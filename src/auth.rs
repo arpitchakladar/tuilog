@@ -1,4 +1,5 @@
 use pam::Client;
+use std::process::Command;
 
 pub fn auth_user(username: &str, password: &str) -> Result<(), String> {
 	let mut client = Client::with_password("login")
