@@ -38,6 +38,16 @@ pub fn get_theme() -> Theme {
 
 pub fn get_error_message_theme(siv: &Cursive) -> Theme {
 	let mut error_theme = siv.current_theme().clone();
+
 	error_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
+
 	error_theme
+}
+
+pub fn get_hostname_art_theme(siv: &Cursive) -> Theme {
+	let mut hostname_art_theme = siv.current_theme().clone();
+
+	hostname_art_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Yellow);
+
+	hostname_art_theme
 }
