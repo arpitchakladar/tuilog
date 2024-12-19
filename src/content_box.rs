@@ -111,7 +111,9 @@ pub fn draw_content_box(siv: &mut Cursive) {
 									let username = siv
 										.call_on_name("username", |view: &mut EditView| view.get_content())
 										.unwrap();
-									auth_user(&username, password);
+									auth_user(&username, password).map_err(|message| {
+										draw_error_message(siv, &message);
+									});
 								})
 								.with_name("password")
 								.fixed_width(INPUT_LENGTH),
