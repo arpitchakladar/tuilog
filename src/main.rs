@@ -11,15 +11,25 @@ fn main() {
 	// Creates a dialog with a single "Quit" button
 	siv.add_layer(
 			Dialog::around(
-				LinearLayout::horizontal()
-					.child(TextView::new("Username "))
-					.child(EditView::new()
-						.with_name("username")
-						.fixed_width(20)
+				LinearLayout::vertical()
+					.child(LinearLayout::horizontal()
+						.child(TextView::new("Username "))
+						.child(EditView::new()
+							.with_name("username")
+							.fixed_width(20)
+						)
+					)
+					.child(LinearLayout::horizontal()
+						.child(TextView::new("Password "))
+						.child(EditView::new()
+							.secret()
+							.with_name("password")
+							.fixed_width(20)
+						)
 					)
 			)
 			.title("TuiLog")
-			.button("Quit", |s| s.quit())
+			.button("Submit", |s| s.quit())
 		);
 
 	// Starts the event loop.
