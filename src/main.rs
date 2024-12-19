@@ -79,6 +79,7 @@ fn draw_content_box(siv: &mut Cursive) {
 							edit_view_theme.clone(),
 							EditView::new()
 								.filler(" ")
+								.on_submit(|siv, _| { siv.focus_name("password"); })
 								.with_name("username")
 								.fixed_width(20)
 							)
@@ -95,8 +96,7 @@ fn draw_content_box(siv: &mut Cursive) {
 								.fixed_width(20)
 						))
 					)
-					.child(Button::new_raw("[LOGIN]", |s| s.quit())
-				)
+					.child(Button::new_raw("[LOGIN]", |s| s.quit()))
 			)
 		)
 		.title("TuiLog")
