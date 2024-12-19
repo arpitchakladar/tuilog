@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use cursive::theme::{
 	PaletteColor,
 	Theme,
@@ -5,49 +6,50 @@ use cursive::theme::{
 	BaseColor,
 	BorderStyle,
 };
-use cursive::Cursive;
 
-pub fn get_edit_view_theme(siv: &Cursive) -> Theme {
-	let mut edit_view_theme = siv.current_theme().clone();
-	let secondary_color = edit_view_theme.palette[PaletteColor::Secondary];
-	edit_view_theme.palette[PaletteColor::Secondary] = edit_view_theme.palette[PaletteColor::Background];
-	edit_view_theme.palette[PaletteColor::Background] = secondary_color;
-	edit_view_theme.palette[PaletteColor::View] = edit_view_theme.palette[PaletteColor::Primary];
-	edit_view_theme
+lazy_static! {
+	static ref base_theme: Theme = {
+		let mut cbase_theme = Theme::terminal_default();
+
+		cbase_theme.shadow = false;
+		cbase_theme.borders = BorderStyle::Simple;
+		cbase_theme.palette[PaletteColor::Background] = Color::Dark(BaseColor::Black);
+		cbase_theme.palette[PaletteColor::Shadow] = Color::Dark(BaseColor::Black);
+		cbase_theme.palette[PaletteColor::View] = Color::Dark(BaseColor::Black);
+		cbase_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::White);
+		cbase_theme.palette[PaletteColor::Secondary] = Color::Dark(BaseColor::White);
+		cbase_theme.palette[PaletteColor::Tertiary] = Color::Light(BaseColor::White);
+		cbase_theme.palette[PaletteColor::TitlePrimary] = Color::Dark(BaseColor::Yellow);
+		cbase_theme.palette[PaletteColor::TitleSecondary] = Color::Dark(BaseColor::Yellow);
+		cbase_theme.palette[PaletteColor::Highlight] = Color::Dark(BaseColor::White);
+		cbase_theme.palette[PaletteColor::HighlightInactive] = Color::Dark(BaseColor::White);
+		cbase_theme.palette[PaletteColor::HighlightText] = Color::Dark(BaseColor::Black);
+
+		cbase_theme
+	};
+	static ref edit_view_theme: Theme = {
+		let mut cedit_view_theme = base_theme.clone();
+		cedit_view_theme.palette[PaletteColor::Secondary] = base_theme.palette[PaletteColor::Background];
+		cedit_view_theme.palette[PaletteColor::Background] = base_theme.palette[PaletteColor::Secondary];
+		cedit_view_theme.palette[PaletteColor::View] = base_theme.palette[PaletteColor::Primary];
+
+		cedit_view_theme
+	};
+	static ref hostname_art_theme: Theme = {
+		let mut chostname_art_theme = base_theme.clone();
+		chostname_art_theme.palette[PaletteColor::Primary] = base_theme.palette[PaletteColor::TitlePrimary];
+
+		chostname_art_theme
+	};
+	static ref error_theme: Theme = {
+		let mut cerror_theme = base_theme.clone();
+		cerror_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
+
+		cerror_theme
+	};
 }
 
-pub fn get_theme() -> Theme {
-	let mut theme = Theme::terminal_default();
-
-	theme.shadow = false;
-	theme.borders = BorderStyle::Simple;
-	theme.palette[PaletteColor::Background] = Color::Dark(BaseColor::Black);
-	theme.palette[PaletteColor::Shadow] = Color::Dark(BaseColor::Black);
-	theme.palette[PaletteColor::View] = Color::Dark(BaseColor::Black);
-	theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::White);
-	theme.palette[PaletteColor::Secondary] = Color::Dark(BaseColor::White);
-	theme.palette[PaletteColor::Tertiary] = Color::Light(BaseColor::White);
-	theme.palette[PaletteColor::TitlePrimary] = Color::Dark(BaseColor::Yellow);
-	theme.palette[PaletteColor::TitleSecondary] = Color::Dark(BaseColor::Yellow);
-	theme.palette[PaletteColor::Highlight] = Color::Dark(BaseColor::White);
-	theme.palette[PaletteColor::HighlightInactive] = Color::Dark(BaseColor::White);
-	theme.palette[PaletteColor::HighlightText] = Color::Dark(BaseColor::Black);
-
-	theme
-}
-
-pub fn get_error_message_theme(siv: &Cursive) -> Theme {
-	let mut error_theme = siv.current_theme().clone();
-
-	error_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
-
-	error_theme
-}
-
-pub fn get_hostname_art_theme(siv: &Cursive) -> Theme {
-	let mut hostname_art_theme = siv.current_theme().clone();
-
-	hostname_art_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Yellow);
-
-	hostname_art_theme
-}
+pub fn get_base_theme() -> Theme { base_theme.clone() }
+pub fn get_edit_view_theme() -> Theme { edit_view_theme.clone() }
+pub fn get_error_message_theme() -> Theme { error_theme.clone() }
+pub fn get_hostname_art_theme() -> Theme { hostname_art_theme.clone() }

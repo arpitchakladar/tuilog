@@ -14,7 +14,6 @@ use cursive::view::{
 	View,
 	Resizable,
 };
-use cursive::theme::Theme;
 use cursive::Cursive;
 
 use crate::utils::longest_line;
@@ -26,13 +25,13 @@ use crate::message::draw_error_message;
 
 const INPUT_LENGTH: usize = 24;
 
-fn draw_input_field<T: View>(label: &str, theme: Theme, left_spacing: usize, edit_view: T) -> impl View {
+fn draw_input_field<T: View>(label: &str, left_spacing: usize, edit_view: T) -> impl View {
 	PaddedView::lrtb(left_spacing, 0, 0, 0,
 		LinearLayout::horizontal()
 			.child(TextView::new(format!("{}: [", label)))
 			.child(
 				ThemedView::new(
-					theme,
+					get_edit_view_theme(),
 					edit_view
 				)
 			)
@@ -47,8 +46,6 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(label: &str, callbac
 }
 
 pub fn draw_content_box(siv: &mut Cursive) {
-	let edit_view_theme = get_edit_view_theme(&siv);
-
 	let hostname = gethostname().into_string().unwrap();
 	let hostname_art = match to_art(hostname.clone(), "standard", 0, 1, 0) {
 		Ok(art) => art,
@@ -65,7 +62,7 @@ pub fn draw_content_box(siv: &mut Cursive) {
 				LinearLayout::vertical()
 					.child(
 						ThemedView::new(
-							get_hostname_art_theme(siv),
+							get_hostname_art_theme(),
 							PaddedView::lrtb(0, 0, 0, 1,
 								TextView::new(hostname_art)
 							),
@@ -74,7 +71,6 @@ pub fn draw_content_box(siv: &mut Cursive) {
 					.child(
 						draw_input_field(
 							"Username",
-							edit_view_theme.clone(),
 							input_left_space,
 							EditView::new()
 								.filler(" ")
@@ -88,7 +84,6 @@ pub fn draw_content_box(siv: &mut Cursive) {
 					.child(
 						draw_input_field(
 							"Password",
-							edit_view_theme.clone(),
 							input_left_space,
 							EditView::new()
 								.secret()
@@ -101,7 +96,7 @@ pub fn draw_content_box(siv: &mut Cursive) {
 						)
 					)
 					.child(
-						PaddedView::lrtb((hostname_art_width - 34)/2, 0, 1, 0,
+						PaddedView::lrtb((hostname_art_width - 36)/2, 0, 1, 0,
 							LinearLayout::horizontal()
 								.child(draw_button("LOGIN", |siv| { siv.quit() }))
 								.child(draw_button("SHUTDOWN", |siv| { siv.quit() }))
@@ -112,4 +107,3 @@ pub fn draw_content_box(siv: &mut Cursive) {
 		)
 	);
 }
-

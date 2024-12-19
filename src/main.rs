@@ -5,14 +5,12 @@ pub mod message;
 pub mod utils;
 
 use background::draw_background_ascii_art;
-use theme::{
-	get_theme,
-};
+use theme::get_base_theme;
 use content_box::draw_content_box;
 
 fn main() {
 	let mut siv = cursive::default();
-	siv.set_theme(get_theme());
+	siv.set_theme(get_base_theme());
 
 	draw_background_ascii_art(&mut siv);
 	draw_content_box(&mut siv);

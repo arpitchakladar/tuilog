@@ -22,7 +22,7 @@ pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 				LinearLayout::vertical()
 					.child(
 						ThemedView::new(
-							get_error_message_theme(siv),
+							get_error_message_theme(),
 							PaddedView::lrtb(0, 0, 0, 1,
 								TextView::new(ascii_art)
 									.h_align(HAlign::Center)
@@ -45,4 +45,3 @@ pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 		)
 	);
 }
-
