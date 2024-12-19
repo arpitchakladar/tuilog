@@ -106,8 +106,12 @@ pub fn draw_content_box(siv: &mut Cursive) {
 							EditView::new()
 								.secret()
 								.filler(" ")
-								.on_submit(|siv, _| {
-									draw_error_message(siv, "Could not log you in!");
+								.on_submit(|siv, password| {
+									let username = siv
+										.call_on_name("username", |view: &mut EditView| view.get_content())
+										.unwrap();
+									let msg = format!("Tried logging in {} with password {}", username, password);
+									draw_error_message(siv, &msg);
 								})
 								.with_name("password")
 								.fixed_width(INPUT_LENGTH),
