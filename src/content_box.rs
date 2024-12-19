@@ -26,7 +26,7 @@ use crate::message::draw_error_message;
 
 const INPUT_LENGTH: usize = 24;
 
-fn draw_input_field<T: View>(label: &str, theme: Theme, left_spacing: usize, edit_view: T) -> PaddedView<LinearLayout> {
+fn draw_input_field<T: View>(label: &str, theme: Theme, left_spacing: usize, edit_view: T) -> impl View {
 	PaddedView::lrtb(left_spacing, 0, 0, 0,
 		LinearLayout::horizontal()
 			.child(TextView::new(format!("{}: [", label)))
@@ -37,6 +37,12 @@ fn draw_input_field<T: View>(label: &str, theme: Theme, left_spacing: usize, edi
 				)
 			)
 			.child(TextView::new("]"))
+	)
+}
+
+fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(label: &str, callback: T) -> impl View {
+	PaddedView::lrtb(2, 0, 0, 0,
+		Button::new_raw(format!("[{}]", label), callback)
 	)
 }
 
@@ -95,8 +101,11 @@ pub fn draw_content_box(siv: &mut Cursive) {
 						)
 					)
 					.child(
-						PaddedView::lrtb(0, 0, 1, 0,
-							Button::new_raw("[LOGIN]", |siv| { siv.quit(); })
+						PaddedView::lrtb((hostname_art_width - 34)/2, 0, 1, 0,
+							LinearLayout::horizontal()
+								.child(draw_button("LOGIN", |siv| { siv.quit() }))
+								.child(draw_button("SHUTDOWN", |siv| { siv.quit() }))
+								.child(draw_button("RESTART", |siv| { siv.quit() }))
 						)
 					)
 			)
