@@ -17,6 +17,7 @@ use cursive::view::{
 use cursive::align::HAlign;
 use cursive::Cursive;
 
+use crate::auth::auth_user;
 use crate::utils::longest_line;
 use crate::theme::{
 	get_edit_view_theme,
@@ -110,8 +111,7 @@ pub fn draw_content_box(siv: &mut Cursive) {
 									let username = siv
 										.call_on_name("username", |view: &mut EditView| view.get_content())
 										.unwrap();
-									let msg = format!("Tried logging in {} with password {}", username, password);
-									draw_error_message(siv, &msg);
+									auth_user(&username, password);
 								})
 								.with_name("password")
 								.fixed_width(INPUT_LENGTH),

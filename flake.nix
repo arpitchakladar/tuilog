@@ -12,7 +12,19 @@
 		devShells."x86_64-linux".default = pkgs.mkShell {
 			packages = with pkgs; [
 				cargo
+				llvm
+				clang
+				libclang.lib
+				pkg-config
+				pam
 			];
+
+			shellHook = ''
+				export LIBCLANG_PATH=${pkgs.libclang.lib}/lib
+				export CFLAGS=-I${pkgs.pam}/include $CFLAGS
+				export CPPFLAGS=-I${pkgs.pam}/include $CPPFLAG
+				export LDFLAGS=-L${pkgs.pam}/lib $LDFLAGS
+			'';
 		};
 	};
 }

@@ -3,6 +3,7 @@ pub mod theme;
 pub mod content_box;
 pub mod message;
 pub mod utils;
+pub mod auth;
 
 use background::draw_background_ascii_art;
 use theme::get_base_theme;
