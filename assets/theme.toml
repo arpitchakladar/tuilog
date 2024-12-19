@@ -11,7 +11,7 @@ borders = "simple"  # Alternatives are "none" and "outset"
 	secondary  = "#2c313a"
 	tertiary   = "#abb2bf"
 
-	title_primary   = "#ef596f"
+	title_primary   = "#e5c07b"
 	title_secondary = "#e5c07b"
 
 	highlight          = "#2c313a"
