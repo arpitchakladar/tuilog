@@ -19,7 +19,8 @@ use cursive::theme::{
 	ColorType,
 	Color,
 	ColorStyle,
-	BaseColor
+	BaseColor,
+	BorderStyle,
 };
 use cursive::align::HAlign;
 use cursive::{
@@ -37,6 +38,26 @@ fn get_edit_view_theme(siv: &Cursive) -> Theme {
 	edit_view_theme.palette[PaletteColor::Background] = secondary_color;
 	edit_view_theme.palette[PaletteColor::View] = edit_view_theme.palette[PaletteColor::Primary];
 	edit_view_theme
+}
+
+fn get_theme() -> Theme {
+	let mut theme = Theme::terminal_default();
+
+	theme.shadow = false;
+	theme.borders = BorderStyle::Simple;
+	theme.palette[PaletteColor::Background] = Color::Dark(BaseColor::Black);
+	theme.palette[PaletteColor::Shadow] = Color::Dark(BaseColor::Black);
+	theme.palette[PaletteColor::View] = Color::Dark(BaseColor::Black);
+	theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::White);
+	theme.palette[PaletteColor::Secondary] = Color::Dark(BaseColor::White);
+	theme.palette[PaletteColor::Tertiary] = Color::Light(BaseColor::White);
+	theme.palette[PaletteColor::TitlePrimary] = Color::Dark(BaseColor::Yellow);
+	theme.palette[PaletteColor::TitleSecondary] = Color::Dark(BaseColor::Yellow);
+	theme.palette[PaletteColor::Highlight] = Color::Dark(BaseColor::White);
+	theme.palette[PaletteColor::HighlightInactive] = Color::Dark(BaseColor::White);
+	theme.palette[PaletteColor::HighlightText] = Color::Dark(BaseColor::Black);
+
+	theme
 }
 
 fn draw_background_ascii_art(siv: &mut Cursive) {
@@ -162,7 +183,7 @@ fn draw_content_box(siv: &mut Cursive) {
 
 fn main() {
 	let mut siv = Cursive::new();
-	siv.load_toml(include_str!("../assets/theme.toml")).unwrap();
+	siv.set_theme(get_theme());
 
 	draw_background_ascii_art(&mut siv);
 	draw_content_box(&mut siv);
