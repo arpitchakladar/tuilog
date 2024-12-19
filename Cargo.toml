@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 cursive = { version = "0.21.1", features = ["toml"] }
+gethostname = "0.5.0"

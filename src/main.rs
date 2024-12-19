@@ -1,4 +1,5 @@
 use std::fs;
+use gethostname::gethostname;
 use cursive::views::{
 	Dialog,
 	EditView,
@@ -23,6 +24,8 @@ use cursive::{
 	Printer,
 	CursiveExt
 };
+
+const INPUT_LENGTH: usize = 24;
 
 fn get_edit_view_theme(siv: &Cursive) -> Theme {
 	let mut edit_view_theme = siv.current_theme().clone();
@@ -66,6 +69,23 @@ fn draw_background(siv: &mut Cursive) {
 	siv.add_layer(Layer::new(ascii_view.full_screen()));
 }
 
+fn draw_dialog(siv: &mut Cursive, text: &str) {
+	siv.add_layer(
+		Dialog::around(
+			PaddedView::lrtb(2, 2, 1, 1,
+				LinearLayout::vertical()
+					.child(TextView::new(text))
+					.child(
+						PaddedView::lrtb(0, 0, 1, 0,
+							Button::new_raw("[OK]", |siv| { siv.pop_layer(); })
+						)
+					)
+			)
+		)
+		.title("ERROR")
+	);
+}
+
 fn draw_content_box(siv: &mut Cursive) {
 	let edit_view_theme = get_edit_view_theme(&siv);
 	// Creates a dialog with a single "Quit" button
@@ -79,9 +99,11 @@ fn draw_content_box(siv: &mut Cursive) {
 							edit_view_theme.clone(),
 							EditView::new()
 								.filler(" ")
-								.on_submit(|siv, _| { siv.focus_name("password"); })
+								.on_submit(|siv, _| {
+									siv.focus_name("password").ok();
+								})
 								.with_name("username")
-								.fixed_width(20)
+								.fixed_width(INPUT_LENGTH)
 							)
 						)
 					)
@@ -92,14 +114,21 @@ fn draw_content_box(siv: &mut Cursive) {
 							EditView::new()
 								.secret()
 								.filler(" ")
+								.on_submit(|siv, _| {
+									draw_dialog(siv, "Couldn't log you in login.");
+								})
 								.with_name("password")
-								.fixed_width(20)
+								.fixed_width(INPUT_LENGTH)
 						))
 					)
-					.child(Button::new_raw("[LOGIN]", |s| s.quit()))
+					.child(
+						PaddedView::lrtb(0, 0, 1, 0,
+							Button::new_raw("[LOGIN]", |siv| { siv.quit(); })
+						)
+					)
 			)
 		)
-		.title("TuiLog")
+		.title(gethostname().into_string().unwrap())
 	);
 }
 
