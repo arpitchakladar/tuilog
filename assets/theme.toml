@@ -1,0 +1,18 @@
+shadow = false  # Don't draw shadows around stacked views
+borders = "simple"  # Alternatives are "none" and "outset"
+
+# Here we define the color palette.
+[colors]
+	background = "#000000"
+	shadow     = ["#000000", "#1c1f24"]
+	view       = "#000000"
+
+	primary    = ["#c8ccd4"]
+	secondary  = "#2c313a"
+	tertiary   = "#abb2bf"
+
+	title_primary   = "#ef596f"
+	title_secondary = "#e5c07b"
+
+	highlight          = "#2c313a"
+	highlight_inactive = "#434852"
