@@ -36,7 +36,7 @@ pub fn get_theme() -> Theme {
 	theme
 }
 
-pub fn get_error_theme(siv: &Cursive) -> Theme {
+pub fn get_error_message_theme(siv: &Cursive) -> Theme {
 	let mut error_theme = siv.current_theme().clone();
 	error_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
 	error_theme
