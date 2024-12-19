@@ -27,6 +27,7 @@ lazy_static! {
 
 		cbase_theme
 	};
+
 	static ref edit_view_theme: Theme = {
 		let mut cedit_view_theme = base_theme.clone();
 		cedit_view_theme.palette[PaletteColor::Secondary] = base_theme.palette[PaletteColor::Background];
@@ -35,12 +36,14 @@ lazy_static! {
 
 		cedit_view_theme
 	};
+
 	static ref hostname_art_theme: Theme = {
 		let mut chostname_art_theme = base_theme.clone();
 		chostname_art_theme.palette[PaletteColor::Primary] = base_theme.palette[PaletteColor::TitlePrimary];
 
 		chostname_art_theme
 	};
+
 	static ref error_theme: Theme = {
 		let mut cerror_theme = base_theme.clone();
 		cerror_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);

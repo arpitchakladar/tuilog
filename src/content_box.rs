@@ -14,6 +14,7 @@ use cursive::view::{
 	View,
 	Resizable,
 };
+use cursive::align::HAlign;
 use cursive::Cursive;
 
 use crate::utils::longest_line;
@@ -25,7 +26,11 @@ use crate::message::draw_error_message;
 
 const INPUT_LENGTH: usize = 24;
 
-fn draw_input_field<T: View>(label: &str, left_spacing: usize, edit_view: T) -> impl View {
+fn draw_input_field<T: View>(
+	label: &str,
+	left_spacing: usize,
+	edit_view: T
+) -> impl View {
 	PaddedView::lrtb(left_spacing, 0, 0, 0,
 		LinearLayout::horizontal()
 			.child(TextView::new(format!("{}: [", label)))
@@ -39,7 +44,10 @@ fn draw_input_field<T: View>(label: &str, left_spacing: usize, edit_view: T) -> 
 	)
 }
 
-fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(label: &str, callback: T) -> impl View {
+fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
+	label: &str,
+	callback: T
+) -> impl View {
 	PaddedView::lrtb(2, 0, 0, 0,
 		Button::new_raw(format!("[{}]", label), callback)
 	)
@@ -47,14 +55,23 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(label: &str, callbac
 
 pub fn draw_content_box(siv: &mut Cursive) {
 	let hostname = gethostname().into_string().unwrap();
-	let hostname_art = match to_art(hostname.clone(), "standard", 0, 1, 0) {
-		Ok(art) => art,
-		Err(_) => hostname,
-	};
+	let hostname_art =
+		match to_art(
+			hostname.clone(),
+			"standard", 0, 1, 0
+		) {
+			Ok(art) => art,
+			Err(_) => hostname,
+		};
 
 	let hostname_art_width = longest_line(&hostname_art);
+	// NOTE: the number 12 is very sensitive, any change in length of label or
+	// text field length must be noted
+	let input_combined_length = INPUT_LENGTH + 12;
 	// The padded space to the left of each input fields to center it
-	let input_left_space = (hostname_art_width - INPUT_LENGTH - 12) / 2;
+	let input_left_space =
+		if input_combined_length > hostname_art_width { 0 }
+		else { (hostname_art_width - input_combined_length) / 2 };
 
 	siv.add_layer(
 		Dialog::around(
@@ -65,6 +82,7 @@ pub fn draw_content_box(siv: &mut Cursive) {
 							get_hostname_art_theme(),
 							PaddedView::lrtb(0, 0, 0, 1,
 								TextView::new(hostname_art)
+									.h_align(HAlign::Center)
 							),
 						)
 					)
@@ -96,6 +114,8 @@ pub fn draw_content_box(siv: &mut Cursive) {
 						)
 					)
 					.child(
+						// NOTE: The number 36 has been precisely caliberated,
+						// anychanges should be noted
 						PaddedView::lrtb((hostname_art_width - 36)/2, 0, 1, 0,
 							LinearLayout::horizontal()
 								.child(draw_button("LOGIN", |siv| { siv.quit() }))
