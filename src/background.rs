@@ -17,7 +17,7 @@ use cursive::{
 };
 
 pub fn draw_background_ascii_art(siv: &mut Cursive) {
-	match fs::read_to_string("assets/background/nixos.txt") {
+	match fs::read_to_string("./assets/background/nixos.txt") {
 		Ok(ascii_art) => {
 			let background_color = siv.current_theme().palette[PaletteColor::Background];
 			// Create a Canvas to render ASCII art

@@ -17,7 +17,10 @@ use cursive::view::{
 use cursive::align::HAlign;
 use cursive::Cursive;
 
-use crate::auth::auth_user;
+use crate::auth::{
+	auth_user,
+	launch_session,
+};
 use crate::utils::longest_line;
 use crate::theme::{
 	get_edit_view_theme,
@@ -109,10 +112,18 @@ pub fn draw_content_box(siv: &mut Cursive) {
 								.filler(" ")
 								.on_submit(|siv, password| {
 									let username = siv
-										.call_on_name("username", |view: &mut EditView| view.get_content())
+										.call_on_name(
+											"username",
+											|view: &mut EditView| view.get_content()
+										)
 										.unwrap();
 									match auth_user(&username, password) {
-										Ok(_) => siv.quit(),
+										Ok(_) => {
+											match launch_session(&username) {
+												Ok(_) => siv.quit(),
+												Err(message) => draw_error_message(siv, &message),
+											}
+										},
 										Err(message) => draw_error_message(siv, &message),
 									}
 								})

@@ -14,7 +14,7 @@ use cursive::Cursive;
 use crate::theme::get_error_message_theme;
 
 pub fn draw_error_message(siv: &mut Cursive, text: &str) {
-	let ascii_art = fs::read_to_string("assets/logos/error.txt")
+	let ascii_art = fs::read_to_string("./assets/logos/error.txt")
 		.expect("Failed to read ASCII art file");
 	siv.add_layer(
 		Dialog::around(
