@@ -17,7 +17,7 @@ use cursive::view::{
 use cursive::align::HAlign;
 use cursive::Cursive;
 
-use crate::auth::{
+use crate::session::{
 	auth_user,
 	launch_session,
 };
