@@ -119,10 +119,8 @@ pub fn draw_content_box(siv: &mut Cursive) {
 										.unwrap();
 									match auth_user(&username, password) {
 										Ok(_) => {
-											match launch_session(&username) {
-												Ok(_) => siv.quit(),
-												Err(message) => draw_error_message(siv, &message),
-											}
+											siv.quit();
+											launch_session(&username).unwrap();
 										},
 										Err(message) => draw_error_message(siv, &message),
 									}
