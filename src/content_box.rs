@@ -17,16 +17,12 @@ use cursive::view::{
 use cursive::align::HAlign;
 use cursive::Cursive;
 
-use crate::session::{
-	auth_user,
-	launch_session,
-};
+use crate::session::start_session;
 use crate::utils::longest_line;
 use crate::theme::{
 	get_edit_view_theme,
 	get_hostname_art_theme,
 };
-use crate::message::draw_error_message;
 
 const INPUT_LENGTH: usize = 24;
 
@@ -110,21 +106,7 @@ pub fn draw_content_box(siv: &mut Cursive) {
 							EditView::new()
 								.secret()
 								.filler(" ")
-								.on_submit(|siv, password| {
-									let username = siv
-										.call_on_name(
-											"username",
-											|view: &mut EditView| view.get_content()
-										)
-										.unwrap();
-									match auth_user(&username, password) {
-										Ok(_) => {
-											siv.quit();
-											launch_session(&username).unwrap();
-										},
-										Err(message) => draw_error_message(siv, &message),
-									}
-								})
+								.on_submit(|siv, _| { start_session(siv); })
 								.with_name("password")
 								.fixed_width(INPUT_LENGTH),
 						)

@@ -17,6 +17,7 @@
 				libclang.lib
 				pkg-config
 				pam
+				dbus.dev
 			];
 
 			shellHook = ''
