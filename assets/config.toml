@@ -1,10 +1,7 @@
-title = "ARPIT CHAKLADAR" # empty for hostname
-
-base = "/etc/tuilog" # default
+title = "ARPIT" # empty for hostname
 
 [ascii_art]
 # under base/assets/background/nixos.txt or use absolute path and default is nil
-background = "nixos.txt"
-
+background = "background/nixos.txt"
 # under base/assets/icons/error.txt or use absolute path and error.txt is default
-error_icon = "error.txt"
+error_icon = "icons/error.txt"

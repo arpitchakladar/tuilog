@@ -1,7 +1,4 @@
-use std::path::{
-	Path,
-	PathBuf,
-};
+use std::path::Path;
 use gethostname::gethostname;
 use serde::Deserialize;
 use lazy_static::lazy_static;
@@ -9,7 +6,6 @@ use lazy_static::lazy_static;
 #[derive(Deserialize)]
 struct Config {
 	title: Option<String>,
-	base: Option<String>,
 	ascii_art: Option<AsciiArt>,
 }
 
@@ -20,16 +16,20 @@ struct AsciiArt {
 }
 
 lazy_static! {
+	static ref base_path: String = std::env::var("TUILOG_CONFIG_DIR")
+		.unwrap_or("/etc/tuilog".to_string());
+
 	static ref config: Config = {
-		let config_dir = std::env::var("TUILOG_CONFIG_DIR")
-			.unwrap_or("/etc/tuilog".to_string());
+		let config_dir = Path::new(&*base_path)
+			.join(Path::new("config.toml"))
+			.display()
+			.to_string();
 		let contents = std::fs::read_to_string(config_dir)
 			.unwrap_or("".to_string());
 		toml::from_str(&contents)
 			.unwrap_or(
 				Config {
 					title: None,
-					base: None,
 					ascii_art: None,
 				}
 			)
@@ -44,17 +44,9 @@ lazy_static! {
 		}
 	};
 
-	static ref base_path: PathBuf = {
-		PathBuf::from(
-			match config.base {
-				Some(ref base) => base.as_str(),
-				None => "/etc/nixos",
-			}
-		)
-	};
-
-	pub static ref background_ascii_art: Option<String> = {
+	pub static ref background_ascii_art_path: Option<String> = {
 		if let Some(ref ascii_art) = config.ascii_art {
+			eprintln!("{:?}", ascii_art.background);
 			if let Some(ref background) = ascii_art.background {
 				let background_path = Path::new(background);
 
@@ -62,7 +54,7 @@ lazy_static! {
 					if background_path.is_absolute() {
 						background.to_string()
 					} else {
-						base_path
+						Path::new(&*base_path)
 							.join(background_path)
 							.display()
 							.to_string()
@@ -74,7 +66,7 @@ lazy_static! {
 		None
 	};
 
-	pub static ref error_icon_ascii_art: Option<String> = {
+	pub static ref error_icon_ascii_art_path: Option<String> = {
 		if let Some(ref ascii_art) = config.ascii_art {
 			if let Some(ref error_icon) = ascii_art.error_icon {
 				let error_icon_path = Path::new(error_icon);
@@ -83,7 +75,7 @@ lazy_static! {
 					if error_icon_path.is_absolute() {
 						error_icon.to_string()
 					} else {
-						base_path
+						Path::new(&*base_path)
 							.join(error_icon_path)
 							.display()
 							.to_string()

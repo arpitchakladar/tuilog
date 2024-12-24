@@ -1,4 +1,3 @@
-use gethostname::gethostname;
 use text_to_ascii_art::to_art;
 use cursive::views::{
 	Dialog,
@@ -23,6 +22,7 @@ use crate::theme::{
 	get_edit_view_theme,
 	get_hostname_art_theme,
 };
+use crate::config::title;
 
 const INPUT_LENGTH: usize = 24;
 
@@ -54,14 +54,13 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 }
 
 pub fn draw_content_box(siv: &mut Cursive) {
-	let hostname = gethostname().into_string().unwrap();
 	let hostname_art =
 		match to_art(
-			hostname.clone(),
+			title.to_string(),
 			"standard", 0, 1, 0
 		) {
 			Ok(art) => art,
-			Err(_) => hostname,
+			Err(_) => title.to_string(),
 		};
 
 	let hostname_art_width = longest_line(&hostname_art);

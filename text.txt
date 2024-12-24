@@ -1,0 +1,4 @@
+Some("background/nixos.txt")
+thread 'main' panicked at src/session.rs:83:45:
+called `Option::unwrap()` on a `None` value
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
