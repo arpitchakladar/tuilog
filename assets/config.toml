@@ -1,0 +1,7 @@
+title = "ARPIT CHAKLADAR" # empty for hostname
+
+config = "/etc/tuilog" # default
+
+[ascii_art]
+background = "nixos.txt" # under base/assets/background/nixos.txt or use absolute path
+error_icon = "error.txt" # under base/assets/icons/error.txt or use absolute path
