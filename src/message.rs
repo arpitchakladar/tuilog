@@ -37,7 +37,6 @@ pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 		None => {},
 	};
 
-
 	siv.add_layer(
 		Dialog::around(
 			PaddedView::lrtb(0, 0, 1, 1,
