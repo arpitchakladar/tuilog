@@ -4,6 +4,7 @@ pub mod content_box;
 pub mod message;
 pub mod utils;
 pub mod session;
+pub mod config;
 
 use background::draw_background_ascii_art;
 use theme::get_base_theme;
