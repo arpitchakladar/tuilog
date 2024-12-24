@@ -1,4 +1,4 @@
-title = "ARPIT" # empty for hostname
+# title = "ARPIT" # nil for hostname
 
 [ascii_art]
 # under base/assets/background/nixos.txt or use absolute path and default is nil

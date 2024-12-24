@@ -80,12 +80,13 @@ pub fn start_session(siv: &mut Cursive) {
 		.call_on_name("password", |view: &mut EditView| view.get_content())
 		.unwrap();
 
-	let user = get_user_by_name(&*username).unwrap();
-
 	match auth_user(&username, &password) {
 		Ok(_client) => {
-			siv.quit();
+			// TODO: Handle if user not found
+			let user = get_user_by_name(&*username).unwrap();
 			set_process_ids(&user).unwrap();
+
+			siv.quit();
 			if let Err(err) = spawn_shell(&user) {
 				eprintln!("Error starting user session: {}", err);
 			}

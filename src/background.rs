@@ -18,7 +18,7 @@ use cursive::{
 
 use crate::config::background_ascii_art_path;
 
-pub fn draw_background_ascii_art(siv: &mut Cursive) {
+pub fn draw_background_ascii_art(siv: &mut Cursive) -> Result<(), String> {
 	match &*background_ascii_art_path {
 		Some(ref path) => match fs::read_to_string(path) {
 			Ok(ascii_art) => {
@@ -50,8 +50,11 @@ pub fn draw_background_ascii_art(siv: &mut Cursive) {
 				// Add the ASCII art as the background
 				siv.add_layer(Layer::new(ascii_view.full_screen()));
 			},
-			Err(_) => eprintln!("Failed to read ASCII art file. Ensure the file exists and is readable."),
+			// TODO: Give better error message
+			Err(_) => return Err("Failed to set background ascii art.".to_string()),
 		},
 		None => {},
-	}
+	};
+
+	Ok(())
 }
