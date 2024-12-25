@@ -1,4 +1,8 @@
-use std::process::Command;
+use std::process::{
+	Command,
+	Child,
+};
+use std::sync::Arc;
 use users::{
 	get_user_by_name,
 	User,
@@ -20,7 +24,7 @@ use crate::message::draw_error_message;
 fn auth_user(
 	username: &str,
 	password: &str,
-) -> Result<(), String> {
+) -> Result<User, String> {
 	let mut client = pam::Client::with_password("tuilog")
 		.map_err(|_| "Unable to authenticate.".to_string())?;
 
@@ -31,20 +35,24 @@ fn auth_user(
 	client
 		.authenticate()
 		.map_err(|_| "Incorrect username or password.".to_string())?;
+
+	let user = get_user_by_name(&*username)
+		.ok_or_else(|| format!("Failed to fetch user named {}.", &username))?;
+
 	client
 		.open_session()
 		.map_err(|_| "Unable to authenticate.".to_string())?;
 
-	Ok(())
+	Ok(user)
 }
 
-fn spawn_shell(user: &User) -> Result<(), String> {
+fn spawn_shell(user: &User) -> Result<Child, String> {
 	let shell_path = user
 		.shell()
 		.to_str()
 		.ok_or_else(|| "Failed to open shell.".to_string())?;
 
-	Command::new(&shell_path)
+	let child = Command::new(&shell_path)
 		.current_dir(user.home_dir())
 		.arg("-l")  // '-l' to start as a login shell
 		.arg("-c") // Run an initialization command
@@ -53,11 +61,9 @@ fn spawn_shell(user: &User) -> Result<(), String> {
 		.stdout(std::process::Stdio::inherit())
 		.stderr(std::process::Stdio::inherit())
 		.spawn()  // Launch the process
-		.map_err(|_| "Failed to open shell.".to_string())?
-		.wait()  // Wait for the shell process to finish
 		.map_err(|_| "Failed to open shell.".to_string())?;
 
-	Ok(())
+	Ok(child)
 }
 
 fn set_process_ids(user: &User) -> Result<(), String> {
@@ -74,25 +80,25 @@ fn set_process_ids(user: &User) -> Result<(), String> {
 }
 
 pub fn start_session(siv: &mut Cursive) -> Result<(), String> {
+	fn get_view_content(view: &mut EditView) -> Arc<String> {
+		view.get_content()
+	}
 	let username = siv
-		.call_on_name("username", |view: &mut EditView| view.get_content())
+		.call_on_name("username", get_view_content)
 		.ok_or_else(|| "Unexpected error occured.".to_string())?;
 	let password = siv
-		.call_on_name("password", |view: &mut EditView| view.get_content())
+		.call_on_name("password", get_view_content)
 		.ok_or_else(|| "Unexcepted error occured.".to_string())?;
 
 	match auth_user(&username, &password) {
-		Ok(_) => {
-			let user = get_user_by_name(&*username)
-				.ok_or_else(|| format!("Failed to fetch user named {}.", &username))?;
-
+		Ok(user) => {
 			set_process_ids(&user)?;
 			siv.quit();
-
-			if let Err(err) = spawn_shell(&user) {
+			let mut child = spawn_shell(&user)?;
+			if let Err(err) = child.wait() {
 				eprintln!("Error starting user session: {}", err);
 			}
-		}
+		},
 		Err(message) => draw_error_message(siv, &message),
 	};
 
