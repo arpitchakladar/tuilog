@@ -23,7 +23,7 @@ use crate::theme::{
 	get_hostname_art_theme,
 };
 use crate::config::title;
-use crate::message::draw_error_message;
+use crate::error::DrawTUILogResult;
 
 const INPUT_LENGTH: usize = 24;
 
@@ -107,9 +107,8 @@ pub fn draw_content_box(siv: &mut Cursive) {
 								.secret()
 								.filler(" ")
 								.on_submit(|siv, _| {
-									if let Err(message) = start_session(siv) {
-										draw_error_message(siv, &message);
-									}
+									start_session(siv)
+										.draw_on_err(siv);
 								})
 								.with_name("password")
 								.fixed_width(INPUT_LENGTH),

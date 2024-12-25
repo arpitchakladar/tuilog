@@ -17,8 +17,12 @@ use cursive::{
 };
 
 use crate::config::background_ascii_art_path;
+use crate::error::{
+	TUILogError,
+	TUILogResult,
+};
 
-pub fn draw_background_ascii_art(siv: &mut Cursive) -> Result<(), String> {
+pub fn draw_background_ascii_art(siv: &mut Cursive) -> TUILogResult<()> {
 	match &*background_ascii_art_path {
 		Some(ref path) => match fs::read_to_string(path) {
 			Ok(ascii_art) => {
@@ -51,7 +55,7 @@ pub fn draw_background_ascii_art(siv: &mut Cursive) -> Result<(), String> {
 				siv.add_layer(Layer::new(ascii_view.full_screen()));
 			},
 			// TODO: Give better error message
-			Err(_) => return Err("Failed to set background ascii art.".to_string()),
+			Err(_) => return Err(TUILogError::BackgroundArtFailed),
 		},
 		None => {},
 	};
