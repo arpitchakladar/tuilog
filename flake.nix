@@ -12,7 +12,6 @@
 		devShells."x86_64-linux".default = pkgs.mkShell {
 			packages = with pkgs; [
 				cargo
-				llvm
 				clang
 				libclang.lib
 				pkg-config
