@@ -24,6 +24,10 @@ use crate::theme::{
 };
 use crate::config::title;
 use crate::error::DrawTUILogResult;
+use crate::system_control::{
+	shutdown,
+	reboot,
+};
 
 const INPUT_LENGTH: usize = 24;
 
@@ -55,12 +59,12 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 }
 
 pub fn draw_content_box(siv: &mut Cursive) {
-	let hostname_art =
-		match to_art(
-			title.to_string(),
-			"standard", 0, 1, 0
-		) {
-			Ok(art) => art,
+let hostname_art =
+match to_art(
+		title.to_string(),
+		"standard", 0, 1, 0
+	) {
+		Ok(art) => art,
 			Err(_) => title.to_string(),
 		};
 
@@ -119,9 +123,33 @@ pub fn draw_content_box(siv: &mut Cursive) {
 						// anychanges should be noted
 						PaddedView::lrtb((hostname_art_width - 36)/2, 0, 1, 0,
 							LinearLayout::horizontal()
-								.child(draw_button("LOGIN", |siv| { siv.quit() }))
-								.child(draw_button("SHUTDOWN", |siv| { siv.quit() }))
-								.child(draw_button("RESTART", |siv| { siv.quit() }))
+								.child(
+									draw_button(
+										"LOGIN",
+										|siv: &mut Cursive| {
+											start_session(siv)
+												.draw_on_err(siv);
+										},
+									),
+								)
+								.child(
+									draw_button(
+										"SHUTDOWN",
+										|siv: &mut Cursive| {
+											shutdown()
+												.draw_on_err(siv);
+										},
+									),
+								)
+								.child(
+									draw_button(
+										"REBOOT",
+										|siv: &mut Cursive| {
+											reboot()
+												.draw_on_err(siv);
+										},
+									),
+								)
 						)
 					)
 			)

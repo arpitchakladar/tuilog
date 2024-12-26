@@ -12,9 +12,11 @@ pub enum TUILogError {
 	LoginShellFailed,
 	LoginSessionFailed,
 	BackgroundArtFailed,
+	ShutdownFailed,
+	RebootFailed,
+	DBUSConnectionFailed,
 }
 
-// Define a trait with the `err` method
 pub trait TUILogErrorMap<T> {
 	type Return;
 	fn tuilog_err(self, error: TUILogError) -> Self::Return;
@@ -24,7 +26,6 @@ pub trait DrawTUILogResult<T> {
 	fn draw_on_err(self, siv: &mut Cursive);
 }
 
-// Implement `TUILogError` for `Result<T, E>`
 impl<T, E> TUILogErrorMap<T> for Result<T, E> {
 	type Return = TUILogResult<T>;
 	fn tuilog_err(self, error: TUILogError) -> Self::Return {
@@ -32,7 +33,6 @@ impl<T, E> TUILogErrorMap<T> for Result<T, E> {
 	}
 }
 
-// Implement `TUILogError` for `Option<T>`
 impl<T> TUILogErrorMap<T> for Option<T> {
 	type Return = TUILogResult<T>;
 	fn tuilog_err(self, error: TUILogError) -> Self::Return {
@@ -49,6 +49,9 @@ impl TUILogError {
 			TUILogError::LoginShellFailed => "Failed to start login shell.",
 			TUILogError::LoginSessionFailed => "Failed to start session.",
 			TUILogError::BackgroundArtFailed => "Failed to draw background art.",
+			TUILogError::ShutdownFailed => "Failed to shutdown system.",
+			TUILogError::RebootFailed => "Failed to reboot.",
+			TUILogError::DBUSConnectionFailed => "Failed to open DBUS connection.",
 		}
 	}
 }

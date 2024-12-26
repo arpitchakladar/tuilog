@@ -6,6 +6,7 @@ pub mod utils;
 pub mod session;
 pub mod config;
 pub mod error;
+pub mod system_control;
 
 use background::draw_background_ascii_art;
 use theme::get_base_theme;
