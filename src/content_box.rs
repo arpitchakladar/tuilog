@@ -190,18 +190,21 @@ pub fn draw_content_box(siv: &mut Cursive) {
 	);
 
 	let default_options = get_default_options();
-	if let Some(ref username) = default_options.username {
-		siv.call_on_name(
-			"username",
-			|view: &mut EditView| {
-				view.set_content(username);
-			},
-		);
+	match default_options.username {
+		Some(ref username) => {
+			siv.call_on_name(
+				"username",
+				|view: &mut EditView| {
+					view.set_content(username);
+				},
+			);
 
-		siv.focus_name("password").ok();
-	} else {
-		siv.focus_name("username").ok();
-	}
+			siv.focus_name("password").ok();
+		},
+		None => {
+			siv.focus_name("username").ok();
+		},
+	};
 
 	if let Some(ref session_type) = default_options.session_type {
 		siv.call_on_name(

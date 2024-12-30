@@ -28,6 +28,7 @@ use crate::error::{
 	TUILogErrorMap,
 	TUILogResult,
 };
+use crate::cache::set_default_options;
 
 fn auth_user(
 	username: &str,
@@ -132,8 +133,14 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		)
 		.tuilog_err(TUILogError::InvalidSessionOption)?;
 
+	// has to be before auth_user as the cache file is only accessible to root
+	set_default_options(
+		username.to_string(),
+		session_id,
+	);
 	let user = auth_user(&username, &password)?;
 	set_process_ids(&user)?;
+
 	let mut child = spawn_shell(&user, session_id)?;
 
 	siv.quit();
