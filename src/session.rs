@@ -1,6 +1,7 @@
 use std::process::{
 	Command,
 	Child,
+	Stdio,
 };
 use std::sync::Arc;
 use users::{
@@ -10,7 +11,10 @@ use users::{
 };
 use cursive::{
 	Cursive,
-	views::EditView,
+	views::{
+		EditView,
+		SelectView,
+	},
 };
 use nix::unistd::{
 	setgid,
@@ -40,7 +44,7 @@ fn auth_user(
 		.authenticate()
 		.tuilog_err(TUILogError::Unauthorized)?;
 
-	let user = get_user_by_name(&*username)
+	let user = get_user_by_name(username)
 		.tuilog_err(TUILogError::UserNotFound)?;
 
 	client
@@ -50,27 +54,45 @@ fn auth_user(
 	Ok(user)
 }
 
-fn spawn_shell(user: &User) -> TUILogResult<Child> {
+fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<Child> {
 	let shell_path = user
 		.shell()
 		.to_str()
 		.tuilog_err(TUILogError::LoginShellFailed)?;
 
-	let child = Command::new(&shell_path)
-		.current_dir(user.home_dir())
-		.arg("-l")  // '-l' to start as a login shell
-		.arg("-c") // Run an initialization command
-		.arg(
-			format!(
-				"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
-				&shell_path
-			)
-		)
-		.stdin(std::process::Stdio::inherit())
-		.stdout(std::process::Stdio::inherit())
-		.stderr(std::process::Stdio::inherit())
-		.spawn()  // Launch the process
-		.tuilog_err(TUILogError::LoginShellFailed)?;
+	let child = match session_type {
+		0 => Command::new(&shell_path)
+				.current_dir(user.home_dir())
+				.arg("-l")  // '-l' to start as a login shell
+				.arg("-c") // Run an initialization command
+				.arg(
+					format!(
+						"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
+						&shell_path
+					)
+				)
+				.stdin(Stdio::inherit())
+				.stdout(Stdio::inherit())
+				.stderr(Stdio::inherit())
+				.spawn()  // Launch the process
+				.tuilog_err(TUILogError::LoginShellFailed)?,
+		1 => Command::new(&shell_path) // use the user's login shell to run startx
+				.current_dir(user.home_dir())
+				.arg("-l")
+				.arg("-c")
+				.arg("startx")
+				.env("HOME", user.home_dir())
+				.env("USER", user.name())
+				.env("LOGNAME", user.name())
+				.stdin(Stdio::inherit())
+				.stdout(Stdio::piped())
+				.stderr(Stdio::piped())
+				.spawn() // Launch the process
+				.tuilog_err(TUILogError::X11SessionFailed)?,
+		_ => {
+			return Err(TUILogError::InvalidSessionOption);
+		},
+	};
 
 	Ok(child)
 }
@@ -98,10 +120,21 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 	let password = siv
 		.call_on_name("password", get_view_content)
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
+	let session_id =
+		siv.call_on_name(
+			"session",
+			|view: &mut SelectView<u8>| {
+				match view.selection() {
+					Some(selected) => *selected,
+					None => 0, // default to shell
+				}
+			}
+		)
+		.tuilog_err(TUILogError::InvalidSessionOption)?;
 
 	let user = auth_user(&username, &password)?;
 	set_process_ids(&user)?;
-	let mut child = spawn_shell(&user)?;
+	let mut child = spawn_shell(&user, session_id)?;
 
 	siv.quit();
 
@@ -110,4 +143,20 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 	}
 
 	Ok(())
+}
+
+pub fn get_sessions() -> Vec<(String, u8)> {
+	let mut sessions = Vec::new();
+
+	sessions.push((
+		"shell".to_string(),
+		0,
+	));
+
+	sessions.push((
+		"startx".to_string(),
+		1,
+	));
+
+	sessions
 }

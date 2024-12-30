@@ -1,3 +1,4 @@
+use std::cmp::max;
 use text_to_ascii_art::to_art;
 use cursive::views::{
 	Dialog,
@@ -7,6 +8,7 @@ use cursive::views::{
 	ThemedView,
 	Button,
 	PaddedView,
+	SelectView,
 };
 use cursive::view::{
 	Nameable,
@@ -16,7 +18,10 @@ use cursive::view::{
 use cursive::align::HAlign;
 use cursive::Cursive;
 
-use crate::session::start_session;
+use crate::session::{
+	get_sessions,
+	start_session,
+};
 use crate::utils::longest_line;
 use crate::theme::{
 	get_edit_view_theme,
@@ -59,12 +64,12 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 }
 
 pub fn draw_content_box(siv: &mut Cursive) {
-let hostname_art =
-match to_art(
-		title.to_string(),
-		"standard", 0, 1, 0
-	) {
-		Ok(art) => art,
+	let hostname_art =
+		match to_art(
+			title.to_string(),
+			"standard", 0, 1, 0
+		) {
+			Ok(art) => art,
 			Err(_) => title.to_string(),
 		};
 
@@ -72,10 +77,26 @@ match to_art(
 	// NOTE: the number 12 is very sensitive, any change in length of label or
 	// text field length must be noted
 	let input_combined_length = INPUT_LENGTH + 12;
+
+	let max_width = max(input_combined_length, hostname_art_width);
 	// The padded space to the left of each input fields to center it
-	let input_left_space =
-		if input_combined_length > hostname_art_width { 0 }
-		else { (hostname_art_width - input_combined_length) / 2 };
+	let input_left_padding = (max_width - input_combined_length) / 2;
+
+	let mut session_select = SelectView::new()
+		.h_align(HAlign::Left);
+
+	let mut session_select_width = 0;
+
+	for (label, session_id) in get_sessions() {
+		session_select_width = max(label.len(), session_select_width);
+		session_select.add_item(label, session_id);
+	}
+
+	// NOTE: the end decorators update this on changing decorators
+	session_select_width += 4;
+
+	let session_select_left_padding = (max_width - session_select_width) / 2;
+	let session_select_right_padding = max_width - session_select_left_padding - session_select_width;
 
 	siv.add_layer(
 		Dialog::around(
@@ -84,16 +105,27 @@ match to_art(
 					.child(
 						ThemedView::new(
 							get_hostname_art_theme(),
-							PaddedView::lrtb(0, 0, 0, 1,
-								TextView::new(hostname_art)
-									.h_align(HAlign::Center)
-							),
+							TextView::new(hostname_art)
+								.h_align(HAlign::Center),
+						)
+					)
+					.child(
+						PaddedView::lrtb(
+							session_select_left_padding, session_select_right_padding, 1, 1,
+							session_select
+								.decorators("< ", " >")
+								.autojump()
+								.on_submit(|siv, _| {
+									siv.focus_name("username").ok();
+								})
+								.popup()
+								.with_name("session"),
 						)
 					)
 					.child(
 						draw_input_field(
 							"Username",
-							input_left_space,
+							input_left_padding,
 							EditView::new()
 								.filler(" ")
 								.on_submit(|siv, _| {
@@ -106,7 +138,7 @@ match to_art(
 					.child(
 						draw_input_field(
 							"Password",
-							input_left_space,
+							input_left_padding,
 							EditView::new()
 								.secret()
 								.filler(" ")
@@ -121,7 +153,7 @@ match to_art(
 					.child(
 						// NOTE: The number 36 has been precisely caliberated,
 						// anychanges should be noted
-						PaddedView::lrtb((hostname_art_width - 36)/2, 0, 1, 0,
+						PaddedView::lrtb((max_width - 36)/2 + 1, 0, 1, 0,
 							LinearLayout::horizontal()
 								.child(
 									draw_button(
@@ -155,4 +187,6 @@ match to_art(
 			)
 		)
 	);
+
+	siv.focus_name("username").ok();
 }

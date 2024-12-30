@@ -46,7 +46,6 @@ lazy_static! {
 
 	pub static ref background_ascii_art_path: Option<String> = {
 		if let Some(ref ascii_art) = config.ascii_art {
-			eprintln!("{:?}", ascii_art.background);
 			if let Some(ref background) = ascii_art.background {
 				let background_path = Path::new(background);
 
