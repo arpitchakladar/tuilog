@@ -1,4 +1,7 @@
-use std::path::Path;
+use std::path::{
+	Path,
+	PathBuf,
+};
 use gethostname::gethostname;
 use serde::Deserialize;
 use lazy_static::lazy_static;
@@ -6,6 +9,7 @@ use lazy_static::lazy_static;
 #[derive(Deserialize)]
 struct Config {
 	title: Option<String>,
+	cache_dir: Option<String>,
 	ascii_art: Option<AsciiArt>,
 }
 
@@ -16,11 +20,13 @@ struct AsciiArt {
 }
 
 lazy_static! {
-	static ref base_path: String = std::env::var("TUILOG_CONFIG_DIR")
-		.unwrap_or("/etc/tuilog".to_string());
+	static ref base_path: PathBuf = PathBuf::from(
+		std::env::var("TUILOG_CONFIG_DIR")
+			.unwrap_or("/etc/tuilog".to_string())
+		);
 
 	static ref config: Config = {
-		let config_dir = Path::new(&*base_path)
+		let config_dir = (*base_path)
 			.join(Path::new("config.toml"))
 			.display()
 			.to_string();
@@ -30,6 +36,7 @@ lazy_static! {
 			.unwrap_or(
 				Config {
 					title: None,
+					cache_dir: None,
 					ascii_art: None,
 				}
 			)
@@ -44,19 +51,27 @@ lazy_static! {
 		}
 	};
 
-	pub static ref background_ascii_art_path: Option<String> = {
+	pub static ref cache_dir: PathBuf = {
+		PathBuf::from(match config.cache_dir {
+			Some(ref cache_dir_path) => cache_dir_path,
+			None => "/var/cache/tuilog",
+		})
+	};
+
+	pub static ref cache_file: PathBuf = (*cache_dir)
+		.join("cache.toml");
+
+	pub static ref background_ascii_art_path: Option<PathBuf> = {
 		if let Some(ref ascii_art) = config.ascii_art {
 			if let Some(ref background) = ascii_art.background {
 				let background_path = Path::new(background);
 
 				return Some(
 					if background_path.is_absolute() {
-						background.to_string()
+						background_path.to_path_buf()
 					} else {
-						Path::new(&*base_path)
+						(*base_path)
 							.join(background_path)
-							.display()
-							.to_string()
 					}
 				);
 			}
@@ -65,19 +80,17 @@ lazy_static! {
 		None
 	};
 
-	pub static ref error_icon_ascii_art_path: Option<String> = {
+	pub static ref error_icon_ascii_art_path: Option<PathBuf> = {
 		if let Some(ref ascii_art) = config.ascii_art {
 			if let Some(ref error_icon) = ascii_art.error_icon {
 				let error_icon_path = Path::new(error_icon);
 
 				return Some(
 					if error_icon_path.is_absolute() {
-						error_icon.to_string()
+						error_icon_path.to_path_buf()
 					} else {
 						Path::new(&*base_path)
 							.join(error_icon_path)
-							.display()
-							.to_string()
 					}
 				);
 			}

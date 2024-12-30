@@ -33,6 +33,7 @@ use crate::system_control::{
 	shutdown,
 	reboot,
 };
+use crate::cache::get_default_options;
 
 const INPUT_LENGTH: usize = 24;
 
@@ -188,5 +189,27 @@ pub fn draw_content_box(siv: &mut Cursive) {
 		)
 	);
 
-	siv.focus_name("username").ok();
+	let default_options = get_default_options();
+	if let Some(ref username) = default_options.username {
+		siv.call_on_name(
+			"username",
+			|view: &mut EditView| {
+				view.set_content(username);
+			},
+		);
+
+		siv.focus_name("password").ok();
+	} else {
+		siv.focus_name("username").ok();
+	}
+
+	if let Some(ref session_type) = default_options.session_type {
+		siv.call_on_name(
+			"session",
+			|view: &mut SelectView<u8>| {
+				view.set_selection(*session_type as usize);
+			},
+		);
+	}
+
 }

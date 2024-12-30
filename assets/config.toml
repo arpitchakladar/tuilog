@@ -1,5 +1,7 @@
 # title = "ARPIT" # nil for hostname
 
+cache_dir = "/var/cache/tuilog" # default
+
 [ascii_art]
 # under base/assets/background/nixos.txt or use absolute path and default is nil
 background = "background/nixos.txt"
