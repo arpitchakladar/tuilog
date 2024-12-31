@@ -29,6 +29,7 @@ use crate::utils::{
 use crate::theme::{
 	get_edit_view_theme,
 	get_hostname_art_theme,
+	get_error_message_theme,
 };
 use crate::config::title;
 use crate::error::DrawTUILogResult;
@@ -111,12 +112,23 @@ pub fn draw_content_box(siv: &mut Cursive) {
 			)
 		);
 
-	if let Some(tty) = get_current_tty() {
-		items_layout.add_child(
-			TextView::new(tty)
-				.h_align(HAlign::Center)
-		);
-	}
+	match get_current_tty() {
+		Some(tty) => {
+			items_layout.add_child(
+				TextView::new(tty)
+					.h_align(HAlign::Center),
+			);
+		},
+		None => {
+			items_layout.add_child(
+				ThemedView::new(
+					get_error_message_theme(),
+					TextView::new("No tty found.")
+						.h_align(HAlign::Center),
+				),
+			);
+		},
+	};
 
 	siv.add_layer(
 		Dialog::around(
