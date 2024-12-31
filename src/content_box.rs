@@ -151,14 +151,28 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 						.child(
 							PaddedView::lrtb(
 								session_select_left_padding, session_select_right_padding, 1, 1,
-								session_select
-									.decorators("< ", " >")
-									.autojump()
-									.on_submit(|siv, _| {
-										siv.focus_name("username").ok();
-									})
-									.popup()
-									.with_name("session"),
+								LinearLayout::horizontal()
+									.child(
+										ThemedView::new(
+											get_accent_message_theme(),
+											TextView::new("< "),
+										),
+									)
+									.child(
+										session_select
+											.decorators("", "")
+											.autojump()
+											.on_submit(|siv, _| {
+												siv.focus_name("username").ok();
+											})
+											.popup()
+											.with_name("session")
+									).child(
+										ThemedView::new(
+											get_accent_message_theme(),
+											TextView::new(" >"),
+										),
+									),
 							)
 						)
 						.child(
