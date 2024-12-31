@@ -7,3 +7,24 @@ pub fn longest_line(input: &str) -> usize {
 		.max()
 		.unwrap_or(0)
 }
+
+// checks for the format tty{number}
+fn is_tty(s: &str) -> bool {
+	s.starts_with("tty") && s[3..].chars().all(|c| c.is_digit(10))
+}
+
+pub fn get_current_tty() -> Option<String> {
+	if let Ok(path) = std::fs::read_link("/proc/self/fd/0") {
+		let tty =  path
+			.file_name()
+			.unwrap()
+			.to_string_lossy()
+			.to_string();
+
+		if is_tty(&tty) {
+			return Some(tty);
+		}
+	}
+
+	None
+}

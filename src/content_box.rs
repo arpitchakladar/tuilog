@@ -22,7 +22,10 @@ use crate::session::{
 	get_sessions,
 	start_session,
 };
-use crate::utils::longest_line;
+use crate::utils::{
+	longest_line,
+	get_current_tty,
+};
 use crate::theme::{
 	get_edit_view_theme,
 	get_hostname_art_theme,
@@ -99,17 +102,26 @@ pub fn draw_content_box(siv: &mut Cursive) {
 	let session_select_left_padding = (max_width - session_select_width) / 2;
 	let session_select_right_padding = max_width - session_select_left_padding - session_select_width;
 
+	let mut items_layout = LinearLayout::vertical()
+		.child(
+			ThemedView::new(
+				get_hostname_art_theme(),
+				TextView::new(hostname_art)
+					.h_align(HAlign::Center),
+			)
+		);
+
+	if let Some(tty) = get_current_tty() {
+		items_layout.add_child(
+			TextView::new(tty)
+				.h_align(HAlign::Center)
+		);
+	}
+
 	siv.add_layer(
 		Dialog::around(
 			PaddedView::lrtb(2, 2, 1, 1,
-				LinearLayout::vertical()
-					.child(
-						ThemedView::new(
-							get_hostname_art_theme(),
-							TextView::new(hostname_art)
-								.h_align(HAlign::Center),
-						)
-					)
+				items_layout
 					.child(
 						PaddedView::lrtb(
 							session_select_left_padding, session_select_right_padding, 1, 1,
