@@ -28,6 +28,14 @@ lazy_static! {
 		cbase_theme
 	};
 
+	// theme of the text that shows the current tty
+	static ref accent_message_theme: Theme = {
+		let mut caccent_message_theme = base_theme.clone();
+		caccent_message_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Cyan);
+
+		return caccent_message_theme;
+	};
+
 	static ref edit_view_theme: Theme = {
 		let mut cedit_view_theme = base_theme.clone();
 		cedit_view_theme.palette[PaletteColor::Secondary] = base_theme.palette[PaletteColor::Background];
@@ -44,15 +52,17 @@ lazy_static! {
 		chostname_art_theme
 	};
 
-	static ref error_theme: Theme = {
-		let mut cerror_theme = base_theme.clone();
-		cerror_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
+	static ref error_message_theme: Theme = {
+		let mut cerror_message_theme = base_theme.clone();
+		cerror_message_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Red);
 
-		cerror_theme
+		cerror_message_theme
 	};
 }
 
+pub fn get_base_theme_ref() -> &'static Theme { &base_theme }
 pub fn get_base_theme() -> Theme { base_theme.clone() }
+pub fn get_accent_message_theme() -> Theme { accent_message_theme.clone() }
 pub fn get_edit_view_theme() -> Theme { edit_view_theme.clone() }
-pub fn get_error_message_theme() -> Theme { error_theme.clone() }
+pub fn get_error_message_theme() -> Theme { error_message_theme.clone() }
 pub fn get_hostname_art_theme() -> Theme { hostname_art_theme.clone() }

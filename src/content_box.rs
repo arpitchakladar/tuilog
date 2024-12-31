@@ -9,14 +9,18 @@ use cursive::views::{
 	Button,
 	PaddedView,
 	SelectView,
+	StackView,
+	stack_view::LayerAt,
 };
 use cursive::view::{
 	Nameable,
 	View,
 	Resizable,
+	Offset,
 };
 use cursive::align::HAlign;
 use cursive::Cursive;
+use cursive::XY;
 
 use crate::session::{
 	get_sessions,
@@ -27,6 +31,7 @@ use crate::utils::{
 	get_current_tty,
 };
 use crate::theme::{
+	get_accent_message_theme,
 	get_edit_view_theme,
 	get_hostname_art_theme,
 	get_error_message_theme,
@@ -68,7 +73,7 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 	)
 }
 
-pub fn draw_content_box(siv: &mut Cursive) {
+pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 	let hostname_art =
 		match to_art(
 			title.to_string(),
@@ -103,120 +108,129 @@ pub fn draw_content_box(siv: &mut Cursive) {
 	let session_select_left_padding = (max_width - session_select_width) / 2;
 	let session_select_right_padding = max_width - session_select_left_padding - session_select_width;
 
-	let mut items_layout = LinearLayout::vertical()
-		.child(
-			ThemedView::new(
-				get_hostname_art_theme(),
-				TextView::new(hostname_art)
-					.h_align(HAlign::Center),
-			)
-		);
+	let top_left_position = XY::new(Offset::Absolute(2), Offset::Absolute(1));
 
+	// display tty at the top left
 	match get_current_tty() {
 		Some(tty) => {
-			items_layout.add_child(
-				TextView::new(tty)
-					.h_align(HAlign::Center),
-			);
+			let corner_text_view =
+				ThemedView::new(
+					get_accent_message_theme(),
+					Dialog::around(
+						TextView::new(tty),
+					),
+				);
+			stack.add_layer(LayerAt(top_left_position, corner_text_view));
 		},
 		None => {
-			items_layout.add_child(
+			let corner_text_view =
 				ThemedView::new(
 					get_error_message_theme(),
-					TextView::new("No tty found.")
-						.h_align(HAlign::Center),
-				),
-			);
+					Dialog::around(
+						TextView::new("No tty found"),
+					),
+				);
+			stack.add_layer(LayerAt(top_left_position, corner_text_view));
 		},
 	};
 
-	siv.add_layer(
-		Dialog::around(
-			PaddedView::lrtb(2, 2, 1, 1,
-				items_layout
-					.child(
-						PaddedView::lrtb(
-							session_select_left_padding, session_select_right_padding, 1, 1,
-							session_select
-								.decorators("< ", " >")
-								.autojump()
-								.on_submit(|siv, _| {
-									siv.focus_name("username").ok();
-								})
-								.popup()
-								.with_name("session"),
+	stack.add_layer(
+		LayerAt(
+			XY::center(),
+			Dialog::around(
+				PaddedView::lrtb(2, 2, 1, 1,
+					LinearLayout::vertical()
+						.child(
+							ThemedView::new(
+								get_hostname_art_theme(),
+								TextView::new(hostname_art)
+									.h_align(HAlign::Center),
+							)
 						)
-					)
-					.child(
-						draw_input_field(
-							"Username",
-							input_left_padding,
-							EditView::new()
-								.filler(" ")
-								.on_submit(|siv, _| {
-									siv.focus_name("password").ok();
-								})
-								.with_name("username")
-								.fixed_width(INPUT_LENGTH)
-						),
-					)
-					.child(
-						draw_input_field(
-							"Password",
-							input_left_padding,
-							EditView::new()
-								.secret()
-								.filler(" ")
-								.on_submit(|siv, _| {
-									start_session(siv)
-										.draw_on_err(siv);
-								})
-								.with_name("password")
-								.fixed_width(INPUT_LENGTH),
+						.child(
+							PaddedView::lrtb(
+								session_select_left_padding, session_select_right_padding, 1, 1,
+								session_select
+									.decorators("< ", " >")
+									.autojump()
+									.on_submit(|siv, _| {
+										siv.focus_name("username").ok();
+									})
+									.popup()
+									.with_name("session"),
+							)
 						)
-					)
-					.child(
-						// NOTE: The number 36 has been precisely caliberated,
-						// anychanges should be noted
-						PaddedView::lrtb((max_width - 36)/2 + 1, 0, 1, 0,
-							LinearLayout::horizontal()
-								.child(
-									draw_button(
-										"LOGIN",
-										|siv: &mut Cursive| {
-											start_session(siv)
-												.draw_on_err(siv);
-										},
-									),
-								)
-								.child(
-									draw_button(
-										"SHUTDOWN",
-										|siv: &mut Cursive| {
-											shutdown()
-												.draw_on_err(siv);
-										},
-									),
-								)
-								.child(
-									draw_button(
-										"REBOOT",
-										|siv: &mut Cursive| {
-											reboot()
-												.draw_on_err(siv);
-										},
-									),
-								)
+						.child(
+							draw_input_field(
+								"Username",
+								input_left_padding,
+								EditView::new()
+									.filler(" ")
+									.on_submit(|siv, _| {
+										siv.focus_name("password").ok();
+									})
+									.with_name("username")
+									.fixed_width(INPUT_LENGTH)
+							),
 						)
-					)
+						.child(
+							draw_input_field(
+								"Password",
+								input_left_padding,
+								EditView::new()
+									.secret()
+									.filler(" ")
+									.on_submit(|siv, _| {
+										start_session(siv)
+											.draw_on_err(siv);
+									})
+									.with_name("password")
+									.fixed_width(INPUT_LENGTH),
+							)
+						)
+						.child(
+							// NOTE: The number 36 has been precisely caliberated,
+							// anychanges should be noted
+							PaddedView::lrtb((max_width - 36)/2 + 1, 0, 1, 0,
+								LinearLayout::horizontal()
+									.child(
+										draw_button(
+											"LOGIN",
+											|siv: &mut Cursive| {
+												start_session(siv)
+													.draw_on_err(siv);
+											},
+										),
+									)
+									.child(
+										draw_button(
+											"SHUTDOWN",
+											|siv: &mut Cursive| {
+												shutdown()
+													.draw_on_err(siv);
+											},
+										),
+									)
+									.child(
+										draw_button(
+											"REBOOT",
+											|siv: &mut Cursive| {
+												reboot()
+													.draw_on_err(siv);
+											},
+										),
+									)
+							)
+						)
+				)
 			)
 		)
 	);
 
 	let default_options = get_default_options();
-	match default_options.username {
-		Some(ref username) => {
-			siv.call_on_name(
+		match default_options.username {
+			Some(ref username) => {
+				siv.call_on_name(
 				"username",
 				|view: &mut EditView| {
 					view.set_content(username);
@@ -238,5 +252,4 @@ pub fn draw_content_box(siv: &mut Cursive) {
 			},
 		);
 	}
-
 }

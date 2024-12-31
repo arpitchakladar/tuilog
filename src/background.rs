@@ -3,6 +3,7 @@ use cursive::traits::*;
 use cursive::views::{
 	Canvas,
 	Layer,
+	StackView,
 };
 use cursive::theme::{
 	PaletteColor,
@@ -11,22 +12,20 @@ use cursive::theme::{
 	BaseColor,
 	ColorStyle,
 };
-use cursive::{
-	Cursive,
-	Printer,
-};
+use cursive::Printer;
 
 use crate::config::background_ascii_art_path;
+use crate::theme::get_base_theme_ref;
 use crate::error::{
 	TUILogError,
 	TUILogResult,
 };
 
-pub fn draw_background_ascii_art(siv: &mut Cursive) -> TUILogResult<()> {
+pub fn draw_background_ascii_art(stack: &mut StackView) -> TUILogResult<()> {
 	match &*background_ascii_art_path {
 		Some(ref path) => match fs::read_to_string(path) {
 			Ok(ascii_art) => {
-				let background_color = siv.current_theme().palette[PaletteColor::Background];
+				let background_color = get_base_theme_ref().palette[PaletteColor::Background];
 				// Create a Canvas to render ASCII art
 				let ascii_view = Canvas::new(ascii_art.to_string())
 					.with_draw(move |ascii_art, printer: &Printer| {
@@ -52,7 +51,7 @@ pub fn draw_background_ascii_art(siv: &mut Cursive) -> TUILogResult<()> {
 					});
 
 				// Add the ASCII art as the background
-				siv.add_layer(Layer::new(ascii_view.full_screen()));
+				stack.add_fullscreen_layer(Layer::new(ascii_view.full_screen()));
 			},
 			// TODO: Give better error message
 			Err(_) => return Err(TUILogError::BackgroundArtFailed),
