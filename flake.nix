@@ -27,8 +27,13 @@
 			shellHook = shellHook;
 		};
 
-		packages."x86_64-linux".tuilog = pkgs.rustPlatform.buildRustPackage rec {
+		packages."x86_64-linux".tuilog =
+		let
+			cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+		in pkgs.rustPlatform.buildRustPackage rec {
+			name = "tuilog-${cargoToml.package.version}";
 			pname = "tuilog";
+			version = cargoToml.package.version;
 			src = ./.;
 			buildInputs = with pkgs; [
 				linux-pam
@@ -39,7 +44,7 @@
 			cargoLock.lockFile = ./Cargo.lock;
 
 			nativeBuildInputs = with pkgs; [
-				clang               # clang should be added to nativeBuildInputs
+				clang
 				libclang.lib
 			];
 
@@ -65,7 +70,7 @@
 				ttys = lib.mkOption {
 					description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
 					type = lib.types.listOf lib.types.int;
-					default = [1];
+					default = [ 1 ];
 				};
 			};
 
@@ -90,13 +95,7 @@
 							TTYVHangup = "yes";
 							TTYVTDisallocate = "yes";
 							KillMode = "process";
-							Environment = ''
-								XDG_SESSION_TYPE=tty
-								XDG_SEAT=seat0
-								XDG_SESSION_CLASS=user
-								XDG_VTNR=${stty}
-								TTY=/dev/tty${stty}
-							'';
+							Environment = "XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=${stty} TTY=/dev/tty${stty}";
 						};
 						wantedBy = [ "multi-user.target" ];
 					};
