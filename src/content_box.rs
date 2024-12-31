@@ -56,17 +56,21 @@ fn draw_input_field<T: View>(
 			.child(
 				ThemedView::new(
 					get_accent_message_theme(),
-					TextView::new(format!("{}: ", label)),
-				)
+					TextView::new(format!("{}: [", label)),
+				),
 			)
-			.child(TextView::new("["))
 			.child(
 				ThemedView::new(
 					get_edit_view_theme(),
-					edit_view
-				)
+					edit_view,
+				),
 			)
-			.child(TextView::new("]"))
+			.child(
+				ThemedView::new(
+					get_accent_message_theme(),
+					TextView::new("]"),
+				),
+			)
 	)
 }
 

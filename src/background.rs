@@ -9,12 +9,14 @@ use cursive::theme::{
 	PaletteColor,
 	ColorType,
 	Color,
-	BaseColor,
 	ColorStyle,
 };
 use cursive::Printer;
 
-use crate::config::background_ascii_art_path;
+use crate::config::{
+	background_ascii_art_path,
+	background_ascii_art_color,
+};
 use crate::theme::get_base_theme_ref;
 use crate::error::{
 	TUILogError,
@@ -42,7 +44,7 @@ pub fn draw_background_ascii_art(stack: &mut StackView) -> TUILogResult<()> {
 
 						for (i, line) in lines.iter().enumerate() {
 							printer.with_color(ColorStyle::new(
-								ColorType::Color(Color::Dark(BaseColor::Blue)),
+								ColorType::Color(Color::Dark(background_ascii_art_color.clone())),
 								ColorType::Color(background_color)
 							), |printer| {
 								printer.print((start_x, start_y + i), line);

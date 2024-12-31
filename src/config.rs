@@ -5,18 +5,50 @@ use std::path::{
 use gethostname::gethostname;
 use serde::Deserialize;
 use lazy_static::lazy_static;
+use cursive::theme::BaseColor;
+
+fn default_cache_dir() -> String { "/var/cache/tuilog".to_string() }
+fn default_ascii_art_config() -> AsciiArt {
+	AsciiArt {
+		background: None,
+		background_art_color: BaseColor::White,
+		error_icon: None,
+	}
+}
+fn default_base_color() -> BaseColor { BaseColor::White }
 
 #[derive(Deserialize)]
 struct Config {
 	title: Option<String>,
-	cache_dir: Option<String>,
-	ascii_art: Option<AsciiArt>,
+	#[serde(default = "default_cache_dir")]
+	cache_dir: String,
+	#[serde(default = "default_ascii_art_config")]
+	ascii_art: AsciiArt,
 }
 
 #[derive(Deserialize)]
 struct AsciiArt {
 	background: Option<String>,
+	#[serde(deserialize_with = "deserialize_base_color", default = "default_base_color")]
+	background_art_color: BaseColor,
 	error_icon: Option<String>,
+}
+
+fn deserialize_base_color<'de, D>(deserializer: D) -> Result<BaseColor, D::Error>
+where
+	D: serde::Deserializer<'de>,
+{
+	match String::deserialize(deserializer)?.as_str() {
+		"Black" => Ok(BaseColor::Black),
+		"Red" => Ok(BaseColor::Red),
+		"Green" => Ok(BaseColor::Green),
+		"Yellow" => Ok(BaseColor::Yellow),
+		"Blue" => Ok(BaseColor::Blue),
+		"Magenta" => Ok(BaseColor::Magenta),
+		"Cyan" => Ok(BaseColor::Cyan),
+		"White" => Ok(BaseColor::White),
+		color => Err(serde::de::Error::custom(format!("Invalid color: {}", color))),
+	}
 }
 
 lazy_static! {
@@ -36,8 +68,8 @@ lazy_static! {
 			.unwrap_or(
 				Config {
 					title: None,
-					cache_dir: None,
-					ascii_art: None,
+					cache_dir: default_cache_dir(),
+					ascii_art: default_ascii_art_config(),
 				}
 			)
 	};
@@ -52,50 +84,49 @@ lazy_static! {
 	};
 
 	pub static ref cache_dir: PathBuf = {
-		PathBuf::from(match config.cache_dir {
-			Some(ref cache_dir_path) => cache_dir_path,
-			None => "/var/cache/tuilog",
-		})
+		PathBuf::from(&config.cache_dir)
 	};
 
 	pub static ref cache_file: PathBuf = (*cache_dir)
 		.join("cache.toml");
 
 	pub static ref background_ascii_art_path: Option<PathBuf> = {
-		if let Some(ref ascii_art) = config.ascii_art {
-			if let Some(ref background) = ascii_art.background {
+		match config.ascii_art.background {
+			Some(ref background) => {
 				let background_path = Path::new(background);
 
-				return Some(
+				Some(
 					if background_path.is_absolute() {
 						background_path.to_path_buf()
 					} else {
 						(*base_path)
 							.join(background_path)
 					}
-				);
-			}
+				)
+			},
+			None => None,
 		}
+	};
 
-		None
+	pub static ref background_ascii_art_color: BaseColor = {
+		config.ascii_art.background_art_color
 	};
 
 	pub static ref error_icon_ascii_art_path: Option<PathBuf> = {
-		if let Some(ref ascii_art) = config.ascii_art {
-			if let Some(ref error_icon) = ascii_art.error_icon {
+		match config.ascii_art.error_icon {
+			Some(ref error_icon) => {
 				let error_icon_path = Path::new(error_icon);
 
-				return Some(
+				Some(
 					if error_icon_path.is_absolute() {
 						error_icon_path.to_path_buf()
 					} else {
-						Path::new(&*base_path)
+						(*base_path)
 							.join(error_icon_path)
 					}
-				);
-			}
+				)
+			},
+			None => None,
 		}
-
-		None
 	};
 }

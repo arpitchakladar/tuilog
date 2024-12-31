@@ -10,9 +10,9 @@
 		pkgs = nixpkgs.legacyPackages."x86_64-linux";
 		shellHook = ''
 			export LIBCLANG_PATH=${pkgs.libclang.lib}/lib
-			export CFLAGS=-I${pkgs.linux-pam}/include $CFLAGS
-			export CPPFLAGS=-I${pkgs.linux-pam}/include $CPPFLAG
-			export LDFLAGS=-L${pkgs.linux-pam}/lib $LDFLAGS
+			export CFLAGS=-I${pkgs.linux-pam}/include:$CFLAGS
+			export CPPFLAGS=-I${pkgs.linux-pam}/include:$CPPFLAG
+			export LDFLAGS=-L${pkgs.linux-pam}/lib:$LDFLAGS
 		'';
 	in {
 		devShells."x86_64-linux".default = pkgs.mkShell {
@@ -50,7 +50,6 @@
 
 			buildPhase = ''
 				${shellHook}
-				export CPATH=${pkgs.linux-pam}/include:$CPATH
 
 				cargo build --release
 			'';
