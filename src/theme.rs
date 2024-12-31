@@ -19,8 +19,8 @@ lazy_static! {
 		cbase_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::White);
 		cbase_theme.palette[PaletteColor::Secondary] = Color::Dark(BaseColor::White);
 		cbase_theme.palette[PaletteColor::Tertiary] = Color::Light(BaseColor::White);
-		cbase_theme.palette[PaletteColor::TitlePrimary] = Color::Dark(BaseColor::Yellow);
-		cbase_theme.palette[PaletteColor::TitleSecondary] = Color::Dark(BaseColor::Yellow);
+		cbase_theme.palette[PaletteColor::TitlePrimary] = Color::Dark(BaseColor::Green);
+		cbase_theme.palette[PaletteColor::TitleSecondary] = Color::Dark(BaseColor::Green);
 		cbase_theme.palette[PaletteColor::Highlight] = Color::Dark(BaseColor::White);
 		cbase_theme.palette[PaletteColor::HighlightInactive] = Color::Dark(BaseColor::White);
 		cbase_theme.palette[PaletteColor::HighlightText] = Color::Dark(BaseColor::Black);
@@ -31,7 +31,7 @@ lazy_static! {
 	// theme of the text that shows the current tty
 	static ref accent_message_theme: Theme = {
 		let mut caccent_message_theme = base_theme.clone();
-		caccent_message_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Cyan);
+		caccent_message_theme.palette[PaletteColor::Primary] = Color::Dark(BaseColor::Yellow);
 
 		return caccent_message_theme;
 	};

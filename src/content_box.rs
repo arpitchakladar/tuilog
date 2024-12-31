@@ -53,7 +53,13 @@ fn draw_input_field<T: View>(
 ) -> impl View {
 	PaddedView::lrtb(left_spacing, 0, 0, 0,
 		LinearLayout::horizontal()
-			.child(TextView::new(format!("{}: [", label)))
+			.child(
+				ThemedView::new(
+					get_accent_message_theme(),
+					TextView::new(format!("{}: ", label)),
+				)
+			)
+			.child(TextView::new("["))
 			.child(
 				ThemedView::new(
 					get_edit_view_theme(),
@@ -69,7 +75,10 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 	callback: T
 ) -> impl View {
 	PaddedView::lrtb(2, 0, 0, 0,
-		Button::new_raw(format!("[{}]", label), callback)
+		ThemedView::new(
+			get_accent_message_theme(),
+			Button::new_raw(format!("[{}]", label), callback),
+		),
 	)
 }
 
@@ -108,31 +117,23 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 	let session_select_left_padding = (max_width - session_select_width) / 2;
 	let session_select_right_padding = max_width - session_select_left_padding - session_select_width;
 
-	let top_left_position = XY::new(Offset::Absolute(2), Offset::Absolute(1));
-
-	// display tty at the top left
-	match get_current_tty() {
-		Some(tty) => {
-			let corner_text_view =
-				ThemedView::new(
-					get_accent_message_theme(),
-					Dialog::around(
+	stack.add_layer(
+		LayerAt(
+			XY::new(Offset::Absolute(2), Offset::Absolute(1)),
+			match get_current_tty() {
+				Some(tty) =>
+					ThemedView::new(
+						get_accent_message_theme(),
 						TextView::new(tty),
 					),
-				);
-			stack.add_layer(LayerAt(top_left_position, corner_text_view));
-		},
-		None => {
-			let corner_text_view =
-				ThemedView::new(
-					get_error_message_theme(),
-					Dialog::around(
-						TextView::new("No tty found"),
-					),
-				);
-			stack.add_layer(LayerAt(top_left_position, corner_text_view));
-		},
-	};
+				None =>
+					ThemedView::new(
+						get_error_message_theme(),
+						TextView::new("no tty"),
+					)
+			},
+		),
+	);
 
 	stack.add_layer(
 		LayerAt(
@@ -162,7 +163,7 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 						)
 						.child(
 							draw_input_field(
-								"Username",
+								"USERNAME",
 								input_left_padding,
 								EditView::new()
 									.filler(" ")
@@ -175,7 +176,7 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 						)
 						.child(
 							draw_input_field(
-								"Password",
+								"PASSWORD",
 								input_left_padding,
 								EditView::new()
 									.secret()
