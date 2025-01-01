@@ -6,6 +6,6 @@ cache_dir = "/var/cache/tuilog" # default
 # under base/assets/background/nixos.txt or use absolute path and default is nil
 background = "background/nixos.txt"
 # Color of the background ascii art, White is default
-background_art_color = "Blue"
+background_art_color = "White"
 # under base/assets/icons/error.txt or use absolute path and error.txt is default
 error_icon = "icons/error.txt"

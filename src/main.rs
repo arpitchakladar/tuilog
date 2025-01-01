@@ -11,7 +11,10 @@ pub mod cache;
 
 use background::draw_background_ascii_art;
 use theme::get_base_theme;
-use content_box::draw_content_box;
+use content_box::{
+	draw_content_box,
+	set_default_values,
+};
 use crate::error::DrawTUILogResult;
 
 use cursive::views::StackView;
@@ -24,11 +27,11 @@ fn main() {
 	let mut stack = StackView::new();
 
 	let draw_background_result = draw_background_ascii_art(&mut stack);
-
-	draw_content_box(&mut siv, &mut stack);
-
+	draw_content_box(&mut stack);
 	draw_background_result.draw_on_err(&mut siv);
 
 	siv.add_fullscreen_layer(stack.full_screen());
+	set_default_values(&mut siv);
+
 	siv.run();
 }

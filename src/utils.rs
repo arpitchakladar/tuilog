@@ -1,6 +1,6 @@
 use unicode_width::UnicodeWidthStr;
 
-pub fn longest_line(input: &str) -> usize {
+pub fn longest_line_length(input: &str) -> usize {
 	input
 		.lines()
 		.map(|line| UnicodeWidthStr::width(line))

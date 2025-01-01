@@ -14,7 +14,7 @@ pub struct Cache {
 	pub default: Option<DefaultOptions>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct DefaultOptions {
 	pub username: Option<String>,
 	pub session_type: Option<u8>,
@@ -47,7 +47,7 @@ pub fn get_default_options() -> DefaultOptions {
 					Err(_) => None,
 				}
 			},
-			Err(_) => None
+			Err(_) => None,
 		};
 
 	match default_options {

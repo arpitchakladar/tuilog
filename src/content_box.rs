@@ -27,7 +27,7 @@ use crate::session::{
 	start_session,
 };
 use crate::utils::{
-	longest_line,
+	longest_line_length,
 	get_current_tty,
 };
 use crate::theme::{
@@ -86,7 +86,7 @@ fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 	)
 }
 
-pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
+pub fn draw_content_box(stack: &mut StackView) {
 	let hostname_art =
 		match to_art(
 			title.to_string(),
@@ -96,7 +96,7 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 			Err(_) => title.to_string(),
 		};
 
-	let hostname_art_width = longest_line(&hostname_art);
+	let hostname_art_width = longest_line_length(&hostname_art);
 	// NOTE: the number 12 is very sensitive, any change in length of label or
 	// text field length must be noted
 	let input_combined_length = INPUT_LENGTH + 12;
@@ -245,11 +245,13 @@ pub fn draw_content_box(siv: &mut Cursive, stack: &mut StackView) {
 			)
 		)
 	);
+}
 
+pub fn set_default_values(siv: &mut Cursive) {
 	let default_options = get_default_options();
-		match default_options.username {
-			Some(ref username) => {
-				siv.call_on_name(
+	match default_options.username {
+		Some(ref username) => {
+			siv.call_on_name(
 				"username",
 				|view: &mut EditView| {
 					view.set_content(username);
