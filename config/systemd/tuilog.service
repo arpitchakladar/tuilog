@@ -1,0 +1,20 @@
+[Unit]
+Description=TUILog Login Manager for tty1
+After=network.target systemd-user-sessions.service
+Requires=systemd-user-sessions.service
+
+[Service]
+ExecStart=/usr/local/bin/tuilog
+Restart=always
+RestartSec=0
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+TTYVTDisallocate=yes
+KillMode=process
+Environment=XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=1 TTY=/dev/tty1
+
+[Install]
+WantedBy=multi-user.target
