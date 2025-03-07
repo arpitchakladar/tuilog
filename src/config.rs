@@ -29,12 +29,17 @@ struct Config {
 #[derive(Deserialize)]
 struct AsciiArt {
 	background: Option<String>,
-	#[serde(deserialize_with = "deserialize_base_color", default = "default_base_color")]
+	#[serde(
+		deserialize_with = "deserialize_base_color",
+		default = "default_base_color"
+	)]
 	background_art_color: BaseColor,
 	error_icon: Option<String>,
 }
 
-fn deserialize_base_color<'de, D>(deserializer: D) -> Result<BaseColor, D::Error>
+fn deserialize_base_color<'de, D>(
+	deserializer: D
+) -> Result<BaseColor, D::Error>
 where
 	D: serde::Deserializer<'de>,
 {
@@ -47,14 +52,19 @@ where
 		"Magenta" => Ok(BaseColor::Magenta),
 		"Cyan" => Ok(BaseColor::Cyan),
 		"White" => Ok(BaseColor::White),
-		color => Err(serde::de::Error::custom(format!("Invalid color: {}", color))),
+		color => Err(
+			serde::de::Error::custom(
+				format!("Invalid color: {}", color)
+			)
+		),
 	}
 }
 
 lazy_static! {
-	static ref base_path: PathBuf = PathBuf::from(
-		std::env::var("TUILOG_CONFIG_DIR")
-			.unwrap_or("/etc/tuilog".to_string())
+	static ref base_path: PathBuf =
+		PathBuf::from(
+			std::env::var("TUILOG_CONFIG_DIR")
+				.unwrap_or("/etc/tuilog".to_string())
 		);
 
 	static ref config: Config = {
