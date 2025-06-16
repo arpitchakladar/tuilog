@@ -94,6 +94,8 @@
 							TTYVHangup = "yes";
 							TTYVTDisallocate = "yes";
 							KillMode = "process";
+							PAMName = "login";
+							Type = "idle";
 							Environment = "XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=${stty} TTY=/dev/tty${stty}";
 						};
 						wantedBy = [ "multi-user.target" ];
@@ -124,6 +126,8 @@
 						session  required  ${pkgs.linux-pam}/lib/security/pam_unix.so
 						session  required  ${pkgs.systemd}/lib/security/pam_systemd.so
 						session  required  ${pkgs.linux-pam}/lib/security/pam_loginuid.so
+						session  required  ${pkgs.linux-pam}/lib/security/pam_env.so readenv=1 user_readenv=1
+						session  required  ${pkgs.linux-pam}/lib/security/pam_limits.so
 					'';
 				};
 

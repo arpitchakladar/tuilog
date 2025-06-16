@@ -64,7 +64,7 @@ sudo cp ./config/pam/tuilog /etc/pam.d/tuilog
 Create a systemd service file for TUILog on TTY1:
 
 ```sh
-sudo cp ./config/systemd/tuilog.service /etc/systemd/system/tuilog@tty1.service
+sudo cp ./config/systemd/tuilog@tty1.service /etc/systemd/system/tuilog@tty1.service
 ```
 ## Asset Configuration
 

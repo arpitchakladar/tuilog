@@ -21,7 +21,12 @@ use nix::unistd::{
 	setuid,
 	Gid,
 	Uid,
+	fork,
+	ForkResult,
+	initgroups,
 };
+use nix::sys::wait::waitpid;
+use std::ffi::CString;
 
 use crate::error::{
 	TUILogError,
@@ -30,10 +35,10 @@ use crate::error::{
 };
 use crate::cache::set_default_options;
 
-fn auth_user(
-	username: &str,
-	password: &str,
-) -> TUILogResult<User> {
+fn auth_user<'a>(
+	username: &'a str,
+	password: &'a str,
+) -> TUILogResult<(pam::Client<'a, pam::PasswordConv>, User)> {
 	let mut client = pam::Client::with_password("tuilog")
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
 
@@ -52,7 +57,7 @@ fn auth_user(
 		.open_session()
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
 
-	Ok(user)
+	Ok((client, user))
 }
 
 fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<Child> {
@@ -81,13 +86,13 @@ fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<Child> {
 				.current_dir(user.home_dir())
 				.arg("-l")
 				.arg("-c")
-				.arg("startx")
+				.arg("exec startx")
 				.env("HOME", user.home_dir())
 				.env("USER", user.name())
 				.env("LOGNAME", user.name())
 				.stdin(Stdio::inherit())
-				.stdout(Stdio::piped())
-				.stderr(Stdio::piped())
+				.stdout(Stdio::inherit())
+				.stderr(Stdio::inherit())
 				.spawn() // Launch the process
 				.tuilog_err(TUILogError::X11SessionFailed)?,
 		_ => {
@@ -103,6 +108,14 @@ fn set_process_ids(user: &User) -> TUILogResult<()> {
 	let gid = Gid::from_raw(user.primary_group_id());
 
 	// Change the process UID and GID to the authenticated user
+	let c_username = CString::new(
+		user.name()
+			.to_str()
+			.tuilog_err(TUILogError::LoginSessionFailed)?
+	)
+		.tuilog_err(TUILogError::LoginSessionFailed)?;
+	initgroups(&c_username, gid)
+		.tuilog_err(TUILogError::LoginSessionFailed)?;
 	setgid(gid)
 		.tuilog_err(TUILogError::LoginSessionFailed)?;
 	setuid(uid)
@@ -138,17 +151,30 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		username.to_string(),
 		session_id,
 	);
-	let user = auth_user(&username, &password)?;
-	set_process_ids(&user)?;
-
-	let mut child = spawn_shell(&user, session_id)?;
-
+	let (pam_client, user) = auth_user(&username, &password)?;
 	siv.quit();
 
-	if let Err(err) = child.wait() {
-		eprintln!("Failed to start user session: {}", err);
+	let proc_type = unsafe {
+		fork()
+			.tuilog_err(TUILogError::LoginSessionFailed)?
+	};
+
+	match proc_type {
+		ForkResult::Parent { child } => {
+			waitpid(child, None)
+				.tuilog_err(TUILogError::LoginSessionFailed)?;
+		},
+		ForkResult::Child => {
+			set_process_ids(&user)?;
+
+			let mut proc = spawn_shell(&user, session_id)?;
+			if let Err(err) = proc.wait() {
+				eprintln!("Failed to start user session: {}", err);
+			}
+		},
 	}
 
+	drop(pam_client); // Close the PAM session
 	Ok(())
 }
 
