@@ -1,8 +1,3 @@
-use std::process::{
-	Command,
-	Child,
-	Stdio,
-};
 use std::sync::Arc;
 use users::{
 	get_user_by_name,
@@ -19,13 +14,23 @@ use cursive::{
 use nix::unistd::{
 	setgid,
 	setuid,
+	setsid,
+	execvp,
 	Gid,
 	Uid,
 	fork,
 	ForkResult,
 	initgroups,
+	chown,
+	dup2,
 };
 use nix::sys::wait::waitpid;
+use nix::sys::stat::Mode;
+use nix::libc;
+use nix::fcntl::{
+	open,
+	OFlag,
+};
 use std::ffi::CString;
 
 use crate::error::{
@@ -34,6 +39,7 @@ use crate::error::{
 	TUILogResult,
 };
 use crate::cache::set_default_options;
+use crate::utils::get_current_tty_path;
 
 fn auth_user<'a>(
 	username: &'a str,
@@ -60,47 +66,58 @@ fn auth_user<'a>(
 	Ok((client, user))
 }
 
-fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<Child> {
+fn set_environment(user: &User) -> TUILogResult<()> {
 	let shell_path = user
 		.shell()
 		.to_str()
 		.tuilog_err(TUILogError::LoginShellFailed)?;
+	std::env::set_var("USER", user.name());
+	std::env::set_var("LOGNAME", user.name());
+	std::env::set_var("HOME", user.home_dir());
+	std::env::set_var("SHELL", shell_path);
+	std::env::set_var("TERM", "linux");
 
-	let child = match session_type {
-		0 => Command::new(&shell_path)
-				.current_dir(user.home_dir())
-				.arg("-l")  // '-l' to start as a login shell
-				.arg("-c") // Run an initialization command
-				.arg(
-					format!(
-						"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
-						&shell_path
-					)
-				)
-				.stdin(Stdio::inherit())
-				.stdout(Stdio::inherit())
-				.stderr(Stdio::inherit())
-				.spawn()  // Launch the process
-				.tuilog_err(TUILogError::LoginShellFailed)?,
-		1 => Command::new(&shell_path) // use the user's login shell to run startx
-				.current_dir(user.home_dir())
-				.arg("-l")
-				.arg("-c")
-				.arg("exec startx")
-				.env("HOME", user.home_dir())
-				.env("USER", user.name())
-				.env("LOGNAME", user.name())
-				.stdin(Stdio::inherit())
-				.stdout(Stdio::inherit())
-				.stderr(Stdio::inherit())
-				.spawn() // Launch the process
-				.tuilog_err(TUILogError::X11SessionFailed)?,
-		_ => {
-			return Err(TUILogError::InvalidSessionOption);
-		},
+	// Set XDG variables if running a desktop session
+	std::env::set_var("XDG_SESSION_TYPE", "tty");
+	std::env::set_var("XDG_RUNTIME_DIR", format!("/run/user/{}", user.uid()));
+	std::env::set_current_dir(std::path::Path::new(user.home_dir()))
+		.tuilog_err(TUILogError::LoginSessionFailed)?;
+
+	Ok(())
+}
+
+fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<()> {
+	let shell_path = user
+		.shell()
+		.to_str()
+		.tuilog_err(TUILogError::LoginShellFailed)?;
+	let c_shell_path = CString::new(shell_path).unwrap();
+
+	let args = match session_type {
+		0 => vec![
+			c_shell_path,
+			CString::new("-l").unwrap(),
+			CString::new("-c").unwrap(),
+			CString::new(
+				format!(
+					"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
+					&shell_path,
+				),
+			).unwrap(),
+		],
+		1 => vec![
+			c_shell_path,
+			CString::new("-l").unwrap(),
+			CString::new("-c").unwrap(),
+			CString::new("exec startx").unwrap(),
+		],
+		_ => return Err(TUILogError::InvalidSessionOption),
 	};
 
-	Ok(child)
+	execvp(&args[0], &args)
+		.tuilog_err(TUILogError::LoginSessionFailed)?;
+
+	Ok(())
 }
 
 fn set_process_ids(user: &User) -> TUILogResult<()> {
@@ -108,6 +125,39 @@ fn set_process_ids(user: &User) -> TUILogResult<()> {
 	let gid = Gid::from_raw(user.primary_group_id());
 
 	// Change the process UID and GID to the authenticated user
+	match get_current_tty_path() {
+		Ok(tty_path) => {
+			setsid()
+				.tuilog_err(TUILogError::LoginSessionFailed)?;
+			chown(&tty_path, Some(uid), Some(gid))
+				.tuilog_err(TUILogError::LoginSessionFailed)?;
+
+			// Open the tty
+			let tty_fd = open(&tty_path, OFlag::O_RDWR, Mode::empty())
+				.tuilog_err(TUILogError::LoginSessionFailed)?;
+
+			// Set it as controlling terminal
+			unsafe {
+				if libc::ioctl(tty_fd, libc::TIOCSCTTY, 1) < 0 {
+					return Err(TUILogError::LoginSessionFailed);
+				}
+			}
+
+			// Redirect stdin, stdout, stderr to the TTY
+			dup2(tty_fd, 0)
+				.tuilog_err(TUILogError::LoginSessionFailed)?; // stdin
+			dup2(tty_fd, 1)
+				.tuilog_err(TUILogError::LoginSessionFailed)?; // stdout
+			dup2(tty_fd, 2)
+				.tuilog_err(TUILogError::LoginSessionFailed)?; // stderr
+
+			// Optional: close extra tty_fd if it's not 0,1,2
+			if tty_fd > 2 {
+				let _ = nix::unistd::close(tty_fd);
+			}
+		},
+		Err(_) => {},
+	};
 	let c_username = CString::new(
 		user.name()
 			.to_str()
@@ -163,18 +213,15 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		ForkResult::Parent { child } => {
 			waitpid(child, None)
 				.tuilog_err(TUILogError::LoginSessionFailed)?;
+			drop(pam_client); // Close the PAM session
 		},
 		ForkResult::Child => {
 			set_process_ids(&user)?;
-
-			let mut proc = spawn_shell(&user, session_id)?;
-			if let Err(err) = proc.wait() {
-				eprintln!("Failed to start user session: {}", err);
-			}
+			set_environment(&user)?;
+			spawn_shell(&user, session_id)?;
 		},
 	}
 
-	drop(pam_client); // Close the PAM session
 	Ok(())
 }
 

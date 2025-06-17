@@ -13,8 +13,12 @@ fn is_tty(s: &str) -> bool {
 	s.starts_with("tty") && s[3..].chars().all(|c| c.is_digit(10))
 }
 
+pub fn get_current_tty_path() -> std::io::Result<std::path::PathBuf> {
+	std::fs::read_link("/proc/self/fd/0")
+}
+
 pub fn get_current_tty() -> Option<String> {
-	if let Ok(path) = std::fs::read_link("/proc/self/fd/0") {
+	if let Ok(path) = get_current_tty_path() {
 		let tty =  path
 			.file_name()
 			.unwrap()
