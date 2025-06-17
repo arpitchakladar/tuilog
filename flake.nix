@@ -2,7 +2,7 @@
 	description = "Flake for TUILog.";
 
 	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+		nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
 	};
 
 	outputs = { self, nixpkgs }:
@@ -94,8 +94,6 @@
 							TTYVHangup = "yes";
 							TTYVTDisallocate = "yes";
 							KillMode = "process";
-							PAMName = "login";
-							Type = "idle";
 							Environment = "XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=${stty} TTY=/dev/tty${stty}";
 						};
 						wantedBy = [ "multi-user.target" ];
@@ -139,3 +137,4 @@
 		};
 	};
 }
+
