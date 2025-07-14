@@ -64,7 +64,7 @@
 		};
 
 		nixosModules.tuilog = { lib, config, pkgs, ... }: {
-			options.display-server.tuilog = {
+			options.services.displayManager.tuilog = {
 				enable = lib.mkEnableOption "Enable TUILog login manager.";
 				ttys = lib.mkOption {
 					description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
@@ -80,7 +80,7 @@
 					stty = toString tty;
 				in {
 					"tuilog@tty${stty}" = {
-						description = "TUILog Login Manager for tty${stty}";
+						description = "TUILog Login Manager for tty${stty}.";
 						after = [ "network.target" "systemd-user-sessions.service" ];
 						requires = [ "systemd-user-sessions.service" ];
 						serviceConfig = {
@@ -99,13 +99,10 @@
 						wantedBy = [ "multi-user.target" ];
 					};
 
-					"getty@tty${stty}" = { enable = false; };
-					"autovt@tty${stty}" = { enable = false; };
+					"getty@tty${stty}".enable = false;
+					"autovt@tty${stty}".enable = false;
 				};
-			in lib.mkIf config.display-server.tuilog.enable {
-				services.xserver.autorun = false;
-				services.libinput.enable = true;
-
+			in lib.mkIf config.services.displayManager.tuilog.enable {
 				environment.systemPackages = with pkgs; [
 					linux-pam
 					systemd
@@ -132,7 +129,7 @@
 				# Iterate over each TTY and define corresponding systemd service configurations.
 				systemd.services =
 					lib.mkMerge
-						(map generateServices config.display-server.tuilog.ttys);
+						(map generateServices config.services.displayManager.tuilog.ttys);
 			};
 		};
 	};

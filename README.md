@@ -22,8 +22,10 @@ imports = [ tuilog.nixosModules.tuilog ];
 3. Enable TUILog:
 
 ```nix
-display-server.tuilog.enable = true;
-display-server.tuilog.ttys = [ 1 ];
+services.displayManager.tuilog.enable = true;
+services.displayManager.tuilog.ttys = [ 1 ];
+services.xserver.autorun = false;
+services.libinput.enable = true;
 ```
 
 4. Rebuild your system:
