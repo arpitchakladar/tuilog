@@ -1,6 +1,7 @@
 use cursive::align::HAlign;
 use cursive::views::{
-	Button, Dialog, LinearLayout, PaddedView, ResizedView, TextView, ThemedView,
+	Button, Dialog, LinearLayout, PaddedView, ResizedView,
+	TextView, ThemedView,
 };
 use cursive::Cursive;
 use std::fs;
@@ -14,19 +15,23 @@ pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 	match &*error_icon_ascii_art_path {
 		Some(ref path) => match fs::read_to_string(path) {
 			Ok(ascii_art) => {
-				error_box_layout = error_box_layout.child(ThemedView::new(
-					get_error_message_theme(),
-					PaddedView::lrtb(
-						0,
-						0,
-						0,
-						1,
-						TextView::new(ascii_art).h_align(HAlign::Center),
-					),
-				))
+				error_box_layout =
+					error_box_layout.child(ThemedView::new(
+						get_error_message_theme(),
+						PaddedView::lrtb(
+							0,
+							0,
+							0,
+							1,
+							TextView::new(ascii_art)
+								.h_align(HAlign::Center),
+						),
+					))
 			}
 			// TODO: Show this error to the user
-			Err(_) => eprintln!("Failed to draw error icon."),
+			Err(_) => {
+				eprintln!("Failed to draw error icon.")
+			}
 		},
 		None => {}
 	};

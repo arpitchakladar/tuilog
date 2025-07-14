@@ -5,6 +5,7 @@ use crate::sessions::add_xsessions;
 
 #[derive(Clone)]
 pub enum SessionType {
+	DefaultShell,
 	Xorg,
 }
 
@@ -18,6 +19,14 @@ pub struct Session {
 lazy_static! {
 	pub static ref sessions: IndexMap<String, Session> = {
 		let mut cur_sessions = IndexMap::new();
+		cur_sessions.insert(
+			"shell".to_string(),
+			Session {
+				name: "shell".to_string(),
+				exec: "".to_string(),
+				session_type: SessionType::DefaultShell,
+			},
+		);
 		add_xsessions(&mut cur_sessions);
 		cur_sessions
 	};
