@@ -61,9 +61,9 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 
 	match session.session_type {
 		SessionType::DefaultShell => {
-			spawn_default_shell_session(&user, &session)
+			spawn_default_shell_session(&user, session)
 		}
-		SessionType::Shell => todo!(),
+		SessionType::Shell => spawn_shell_session(&user, session),
 		SessionType::Xsession => todo!(),
 	}?;
 
