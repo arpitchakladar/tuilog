@@ -1,7 +1,7 @@
 use indexmap::IndexMap;
 use lazy_static::lazy_static;
 
-use crate::sessions::add_xsessions;
+use crate::session::add_xsessions;
 
 #[derive(Clone)]
 pub enum SessionType {

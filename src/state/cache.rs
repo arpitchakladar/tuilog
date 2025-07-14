@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-use crate::config::{cache_dir, cache_file};
+use crate::state::{cache_dir, cache_file};
 
 #[derive(Serialize, Deserialize)]
 pub struct Cache {
@@ -14,10 +14,7 @@ pub struct DefaultOptions {
 	pub session_name: Option<String>,
 }
 
-pub fn set_default_options(
-	username: String,
-	session_name: String,
-) {
+pub fn set_default_options(username: String, session_name: String) {
 	let cache = Cache {
 		default: Some(DefaultOptions {
 			username: Some(username),
@@ -29,26 +26,17 @@ pub fn set_default_options(
 		return;
 	}
 
-	fs::write(
-		&*cache_file,
-		toml::to_string(&cache).unwrap(),
-	)
-	.ok();
+	fs::write(&*cache_file, toml::to_string(&cache).unwrap()).ok();
 }
 
 pub fn get_default_options() -> DefaultOptions {
-	let default_options =
-		match fs::read_to_string(&*cache_file) {
-			Ok(cache_content) => {
-				match toml::from_str::<Cache>(
-					&cache_content,
-				) {
-					Ok(cache) => cache.default,
-					Err(_) => None,
-				}
-			}
+	let default_options = match fs::read_to_string(&*cache_file) {
+		Ok(cache_content) => match toml::from_str::<Cache>(&cache_content) {
+			Ok(cache) => cache.default,
 			Err(_) => None,
-		};
+		},
+		Err(_) => None,
+	};
 
 	match default_options {
 		Some(default_options) => default_options,

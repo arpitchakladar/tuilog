@@ -1,12 +1,10 @@
 use zbus::blocking::Connection;
 
-use crate::error::{
-	TUILogError, TUILogErrorMap, TUILogResult,
-};
+use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
 
 pub fn shutdown() -> TUILogResult<()> {
-	let connection = Connection::system()
-		.tuilog_err(TUILogError::DBUSConnectionFailed)?;
+	let connection =
+		Connection::system().tuilog_err(TUILogError::DBUSConnectionFailed)?;
 	let proxy = zbus::blocking::Proxy::new(
 		&connection,
 		"org.freedesktop.login1",
@@ -23,8 +21,8 @@ pub fn shutdown() -> TUILogResult<()> {
 }
 
 pub fn reboot() -> TUILogResult<()> {
-	let connection = Connection::system()
-		.tuilog_err(TUILogError::DBUSConnectionFailed)?;
+	let connection =
+		Connection::system().tuilog_err(TUILogError::DBUSConnectionFailed)?;
 	let proxy = zbus::blocking::Proxy::new(
 		&connection,
 		"org.freedesktop.login1",

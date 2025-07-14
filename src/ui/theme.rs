@@ -1,6 +1,4 @@
-use cursive::theme::{
-	BaseColor, BorderStyle, Color, PaletteColor, Theme,
-};
+use cursive::theme::{BaseColor, BorderStyle, Color, PaletteColor, Theme};
 use lazy_static::lazy_static;
 
 lazy_static! {

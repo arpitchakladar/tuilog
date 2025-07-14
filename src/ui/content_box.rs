@@ -1,23 +1,21 @@
 use cursive::align::HAlign;
 use cursive::view::{Nameable, Offset, Resizable, View};
 use cursive::views::{
-	stack_view::LayerAt, Button, Dialog, EditView,
-	LinearLayout, PaddedView, SelectView, StackView,
-	TextView, ThemedView,
+	stack_view::LayerAt, Button, Dialog, EditView, LinearLayout, PaddedView,
+	SelectView, StackView, TextView, ThemedView,
 };
 use cursive::Cursive;
 use cursive::XY;
 use std::cmp::max;
 use text_to_ascii_art::to_art;
 
-use crate::cache::get_default_options;
-use crate::config::title;
 use crate::error::DrawTUILogResult;
-use crate::sessions::{sessions, start_session, Session};
+use crate::session::{sessions, start_session, Session};
+use crate::state::{get_default_options, title};
 use crate::system_control::{reboot, shutdown};
-use crate::theme::{
-	get_accent_message_theme, get_edit_view_theme,
-	get_error_message_theme, get_hostname_art_theme,
+use crate::ui::{
+	get_accent_message_theme, get_edit_view_theme, get_error_message_theme,
+	get_hostname_art_theme,
 };
 use crate::utils::{get_current_tty, longest_line_length};
 
@@ -38,10 +36,7 @@ fn draw_input_field<T: View>(
 				get_accent_message_theme(),
 				TextView::new(format!("{}: [", label)),
 			))
-			.child(ThemedView::new(
-				get_edit_view_theme(),
-				edit_view,
-			))
+			.child(ThemedView::new(get_edit_view_theme(), edit_view))
 			.child(ThemedView::new(
 				get_accent_message_theme(),
 				TextView::new("]"),
@@ -49,9 +44,7 @@ fn draw_input_field<T: View>(
 	)
 }
 
-fn draw_button<
-	T: 'static + Fn(&mut Cursive) + Send + Sync,
->(
+fn draw_button<T: 'static + Fn(&mut Cursive) + Send + Sync>(
 	label: &str,
 	callback: T,
 ) -> impl View {
@@ -62,68 +55,48 @@ fn draw_button<
 		0,
 		ThemedView::new(
 			get_accent_message_theme(),
-			Button::new_raw(
-				format!("[{}]", label),
-				callback,
-			),
+			Button::new_raw(format!("[{}]", label), callback),
 		),
 	)
 }
 
 pub fn draw_content_box(stack: &mut StackView) {
-	let hostname_art = match to_art(
-		title.to_string(),
-		"standard",
-		0,
-		1,
-		0,
-	) {
+	let hostname_art = match to_art(title.to_string(), "standard", 0, 1, 0) {
 		Ok(art) => art,
 		Err(_) => title.to_string(),
 	};
 
-	let hostname_art_width =
-		longest_line_length(&hostname_art);
+	let hostname_art_width = longest_line_length(&hostname_art);
 	// NOTE: the number 12 is very sensitive, any change in length of label or
 	// text field length must be noted
 	let input_combined_length = INPUT_LENGTH + 12;
 
-	let max_width =
-		max(input_combined_length, hostname_art_width);
+	let max_width = max(input_combined_length, hostname_art_width);
 	// The padded space to the left of each input fields to center it
-	let input_left_padding =
-		(max_width - input_combined_length) / 2;
+	let input_left_padding = (max_width - input_combined_length) / 2;
 
-	let mut session_select =
-		SelectView::new().h_align(HAlign::Left);
+	let mut session_select = SelectView::new().h_align(HAlign::Left);
 
 	let mut session_select_width = 0;
 
 	for (session_name, session) in sessions.iter() {
-		session_select_width =
-			max(session_name.len(), session_select_width);
-		session_select.add_item(
-			session_name.clone(),
-			session.clone(),
-		);
+		session_select_width = max(session_name.len(), session_select_width);
+		session_select.add_item(session_name.clone(), session.clone());
 	}
 
 	// NOTE: the end decorators update this on changing decorators
 	session_select_width += 4;
 
-	let session_select_left_padding =
-		(max_width - session_select_width) / 2;
-	let session_select_right_padding = max_width
-		- session_select_left_padding
-		- session_select_width;
+	let session_select_left_padding = (max_width - session_select_width) / 2;
+	let session_select_right_padding =
+		max_width - session_select_left_padding - session_select_width;
 
 	stack.add_layer(LayerAt(
 		XY::new(Offset::Absolute(2), Offset::Absolute(1)),
 		match get_current_tty() {
-			Some(tty) => ThemedView::new(
-				get_accent_message_theme(),
-				TextView::new(tty),
-			),
+			Some(tty) => {
+				ThemedView::new(get_accent_message_theme(), TextView::new(tty))
+			}
 			None => ThemedView::new(
 				get_error_message_theme(),
 				TextView::new("no tty"),
@@ -141,8 +114,7 @@ pub fn draw_content_box(stack: &mut StackView) {
 			LinearLayout::vertical()
 				.child(ThemedView::new(
 					get_hostname_art_theme(),
-					TextView::new(hostname_art)
-						.h_align(HAlign::Center),
+					TextView::new(hostname_art).h_align(HAlign::Center),
 				))
 				.child(PaddedView::lrtb(
 					session_select_left_padding,
@@ -159,10 +131,7 @@ pub fn draw_content_box(stack: &mut StackView) {
 								.decorators("", "")
 								.autojump()
 								.on_submit(|siv, _| {
-									siv.focus_name(
-										"username",
-									)
-									.ok();
+									siv.focus_name("username").ok();
 								})
 								.popup()
 								.with_name("session"),
@@ -190,8 +159,7 @@ pub fn draw_content_box(stack: &mut StackView) {
 						.secret()
 						.filler(" ")
 						.on_submit(|siv, _| {
-							start_session(siv)
-								.draw_on_err(siv);
+							start_session(siv).draw_on_err(siv);
 						})
 						.with_name("password")
 						.fixed_width(INPUT_LENGTH),
@@ -205,25 +173,19 @@ pub fn draw_content_box(stack: &mut StackView) {
 						1,
 						0,
 						LinearLayout::horizontal()
-							.child(draw_button(
-								"LOGIN",
-								|siv: &mut Cursive| {
-									start_session(siv)
-										.draw_on_err(siv);
-								},
-							))
+							.child(draw_button("LOGIN", |siv: &mut Cursive| {
+								start_session(siv).draw_on_err(siv);
+							}))
 							.child(draw_button(
 								"SHUTDOWN",
 								|siv: &mut Cursive| {
-									shutdown()
-										.draw_on_err(siv);
+									shutdown().draw_on_err(siv);
 								},
 							))
 							.child(draw_button(
 								"REBOOT",
 								|siv: &mut Cursive| {
-									reboot()
-										.draw_on_err(siv);
+									reboot().draw_on_err(siv);
 								},
 							)),
 					),
@@ -236,12 +198,9 @@ pub fn set_default_values(siv: &mut Cursive) {
 	let default_options = get_default_options();
 	match default_options.username {
 		Some(ref username) => {
-			siv.call_on_name(
-				"username",
-				|view: &mut EditView| {
-					view.set_content(username);
-				},
-			);
+			siv.call_on_name("username", |view: &mut EditView| {
+				view.set_content(username);
+			});
 
 			siv.focus_name("password").ok();
 		}
@@ -250,18 +209,11 @@ pub fn set_default_values(siv: &mut Cursive) {
 		}
 	};
 
-	if let Some(ref session_name) =
-		default_options.session_name
-	{
-		siv.call_on_name(
-			"session",
-			|view: &mut SelectView<Session>| {
-				if let Some(session_index) =
-					sessions.get_index_of(session_name)
-				{
-					view.set_selection(session_index);
-				}
-			},
-		);
+	if let Some(ref session_name) = default_options.session_name {
+		siv.call_on_name("session", |view: &mut SelectView<Session>| {
+			if let Some(session_index) = sessions.get_index_of(session_name) {
+				view.set_selection(session_index);
+			}
+		});
 	}
 }
