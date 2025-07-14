@@ -4,7 +4,7 @@ pub mod config;
 pub mod content_box;
 pub mod error;
 pub mod message;
-pub mod session;
+pub mod sessions;
 pub mod system_control;
 pub mod theme;
 pub mod utils;

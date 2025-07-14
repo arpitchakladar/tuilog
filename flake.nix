@@ -25,7 +25,10 @@
 				linux-pam
 			];
 
-			shellHook = shellHook;
+			shellHook = ''
+${shellHook}
+export TUILOG_CONFIG_DIR=$(pwd)/assets
+'';
 		};
 
 		packages."x86_64-linux".tuilog =

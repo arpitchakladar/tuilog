@@ -16,6 +16,7 @@ use users::{get_user_by_name, os::unix::UserExt, User};
 
 use crate::cache::set_default_options;
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
+use crate::sessions::Session;
 use crate::utils::get_current_tty_path;
 
 fn auth_user<'a>(
@@ -63,32 +64,23 @@ fn set_environment(user: &User) -> TUILogResult<()> {
 	Ok(())
 }
 
-fn spawn_shell(user: &User, session_type: u8) -> TUILogResult<()> {
+fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 	let shell_path = user
 		.shell()
 		.to_str()
 		.tuilog_err(TUILogError::LoginShellFailed)?;
 	let c_shell_path = CString::new(shell_path).unwrap();
 
-	let args = match session_type {
-		0 => vec![
-			c_shell_path,
-			CString::new("-l").unwrap(),
-			CString::new("-c").unwrap(),
-			CString::new(format!(
-				"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
-				&shell_path,
-			))
-			.unwrap(),
-		],
-		1 => vec![
-			c_shell_path,
-			CString::new("-l").unwrap(),
-			CString::new("-c").unwrap(),
-			CString::new("exec startx").unwrap(),
-		],
-		_ => return Err(TUILogError::InvalidSessionOption),
-	};
+	let args = vec![
+		c_shell_path,
+		CString::new("-l").unwrap(),
+		CString::new("-c").unwrap(),
+		CString::new(format!(
+			"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
+			&session.exec,
+		))
+		.unwrap(),
+	];
 
 	execvp(&args[0], &args).tuilog_err(TUILogError::LoginSessionFailed)?;
 
@@ -152,17 +144,18 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 	let password = siv
 		.call_on_name("password", get_view_content)
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
-	let session_id = siv
-		.call_on_name("session", |view: &mut SelectView<u8>| {
+	let session = siv
+		.call_on_name("session", |view: &mut SelectView<Session>| {
 			match view.selection() {
-				Some(selected) => *selected,
-				None => 0, // default to shell
+				Some(session) => Some(Session::clone(&session)),
+				None => None,
 			}
 		})
+		.tuilog_err(TUILogError::InvalidSessionOption)?
 		.tuilog_err(TUILogError::InvalidSessionOption)?;
 
 	// has to be before auth_user as the cache file is only accessible to root
-	set_default_options(username.to_string(), session_id);
+	set_default_options(username.to_string(), session.name.clone());
 	let (pam_client, user) = auth_user(&username, &password)?;
 	siv.quit();
 
@@ -177,19 +170,9 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		ForkResult::Child => {
 			set_process_ids(&user)?;
 			set_environment(&user)?;
-			spawn_shell(&user, session_id)?;
+			spawn_session(&user, &session)?;
 		}
 	}
 
 	Ok(())
-}
-
-pub fn get_sessions() -> Vec<(String, u8)> {
-	let mut sessions = Vec::new();
-
-	sessions.push(("shell".to_string(), 0));
-
-	sessions.push(("startx".to_string(), 1));
-
-	sessions
 }

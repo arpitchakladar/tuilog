@@ -1,7 +1,8 @@
 # title = "ARPIT" # don't set for hostname
 
 cache_dir = "/var/cache/tuilog" # default
-
+# directory where all xsessions are found
+xsessions_dir = "/usr/share/xsessions"
 [ascii_art]
 # under base/assets/background/nixos.txt or use absolute path and default is nil
 background = "background/nixos.txt"

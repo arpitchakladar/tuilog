@@ -7,6 +7,9 @@ use std::path::{Path, PathBuf};
 fn default_cache_dir() -> String {
 	"/var/cache/tuilog".to_string()
 }
+fn default_xsessions_dir() -> String {
+	"/usr/share/xsessions".to_string()
+}
 fn default_ascii_art_config() -> AsciiArt {
 	AsciiArt {
 		background: None,
@@ -23,6 +26,8 @@ struct Config {
 	title: Option<String>,
 	#[serde(default = "default_cache_dir")]
 	cache_dir: String,
+	#[serde(default = "default_xsessions_dir")]
+	xsessions_dir: String,
 	#[serde(default = "default_ascii_art_config")]
 	ascii_art: AsciiArt,
 }
@@ -79,6 +84,7 @@ lazy_static! {
 				Config {
 					title: None,
 					cache_dir: default_cache_dir(),
+					xsessions_dir: default_cache_dir(),
 					ascii_art: default_ascii_art_config(),
 				}
 			)
@@ -99,6 +105,10 @@ lazy_static! {
 
 	pub static ref cache_file: PathBuf = (*cache_dir)
 		.join("cache.toml");
+
+	pub static ref xsessions_dir: PathBuf = {
+		PathBuf::from(&config.xsessions_dir)
+	};
 
 	pub static ref background_ascii_art_path: Option<PathBuf> = {
 		match config.ascii_art.background {

@@ -12,7 +12,7 @@ use text_to_ascii_art::to_art;
 use crate::cache::get_default_options;
 use crate::config::title;
 use crate::error::DrawTUILogResult;
-use crate::session::{get_sessions, start_session};
+use crate::sessions::{sessions, start_session, Session};
 use crate::system_control::{reboot, shutdown};
 use crate::theme::{
 	get_accent_message_theme, get_edit_view_theme, get_error_message_theme,
@@ -80,9 +80,9 @@ pub fn draw_content_box(stack: &mut StackView) {
 
 	let mut session_select_width = 0;
 
-	for (label, session_id) in get_sessions() {
-		session_select_width = max(label.len(), session_select_width);
-		session_select.add_item(label, session_id);
+	for (session_name, session) in sessions.iter() {
+		session_select_width = max(session_name.len(), session_select_width);
+		session_select.add_item(session_name.clone(), session.clone());
 	}
 
 	// NOTE: the end decorators update this on changing decorators
@@ -210,9 +210,11 @@ pub fn set_default_values(siv: &mut Cursive) {
 		}
 	};
 
-	if let Some(ref session_type) = default_options.session_type {
-		siv.call_on_name("session", |view: &mut SelectView<u8>| {
-			view.set_selection(*session_type as usize);
+	if let Some(ref session_name) = default_options.session_name {
+		siv.call_on_name("session", |view: &mut SelectView<Session>| {
+			if let Some(session_index) = sessions.get_index_of(session_name) {
+				view.set_selection(session_index);
+			}
 		});
 	}
 }
