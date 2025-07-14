@@ -36,14 +36,14 @@ pub fn add_xsessions(
 						if !name.is_empty()
 							&& !exec.is_empty()
 						{
-							name.push_str(" (Xorg)");
+							name.push_str(" (Xsession)");
 							sessions.insert(
 								name.clone(),
 								Session {
 									name,
 									exec,
 									session_type:
-										SessionType::Xorg,
+										SessionType::Xsession,
 								},
 							);
 						}

@@ -82,7 +82,7 @@ pub fn start_session(
 		SessionType::DefaultShell => {
 			spawn_default_shell_session(&user, &session)
 		}
-		SessionType::Xorg => panic!("not yet implemented!"),
+		SessionType::Xsession => panic!("not yet implemented!"),
 	}?;
 
 	drop(pam_client); // Close the PAM session
