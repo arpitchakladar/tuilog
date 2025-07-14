@@ -6,6 +6,7 @@ use crate::session::add_xsessions;
 #[derive(Clone)]
 pub enum SessionType {
 	DefaultShell,
+	Shell,
 	Xsession,
 }
 

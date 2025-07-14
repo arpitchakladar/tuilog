@@ -63,9 +63,8 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		SessionType::DefaultShell => {
 			spawn_default_shell_session(&user, &session)
 		}
-		SessionType::Xsession => {
-			panic!("not yet implemented!")
-		}
+		SessionType::Shell => todo!(),
+		SessionType::Xsession => todo!(),
 	}?;
 
 	drop(pam_client); // Close the PAM session
