@@ -47,15 +47,21 @@ impl TUILogError {
 		match self {
 			TUILogError::AuthenticationFailed => "Failed to authenticate.",
 			TUILogError::Unauthorized => "Invalid username or password.",
-			TUILogError::UserNotFound => "No user found with the given username.",
+			TUILogError::UserNotFound => {
+				"No user found with the given username."
+			}
 			TUILogError::LoginShellFailed => "Failed to start login shell.",
 			TUILogError::X11SessionFailed => "Failed to start xserver.",
 			TUILogError::InvalidSessionOption => "Invalid session selected.",
 			TUILogError::LoginSessionFailed => "Failed to start session.",
-			TUILogError::BackgroundArtFailed => "Failed to draw background art.",
+			TUILogError::BackgroundArtFailed => {
+				"Failed to draw background art."
+			}
 			TUILogError::ShutdownFailed => "Failed to shutdown system.",
 			TUILogError::RebootFailed => "Failed to reboot.",
-			TUILogError::DBUSConnectionFailed => "Failed to open DBUS connection.",
+			TUILogError::DBUSConnectionFailed => {
+				"Failed to open DBUS connection."
+			}
 		}
 	}
 }

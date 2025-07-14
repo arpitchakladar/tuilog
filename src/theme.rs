@@ -1,11 +1,5 @@
+use cursive::theme::{BaseColor, BorderStyle, Color, PaletteColor, Theme};
 use lazy_static::lazy_static;
-use cursive::theme::{
-	PaletteColor,
-	Theme,
-	Color,
-	BaseColor,
-	BorderStyle,
-};
 
 lazy_static! {
 	static ref base_theme: Theme = {
@@ -60,9 +54,21 @@ lazy_static! {
 	};
 }
 
-pub fn get_base_theme_ref() -> &'static Theme { &base_theme }
-pub fn get_base_theme() -> Theme { base_theme.clone() }
-pub fn get_accent_message_theme() -> Theme { accent_message_theme.clone() }
-pub fn get_edit_view_theme() -> Theme { edit_view_theme.clone() }
-pub fn get_error_message_theme() -> Theme { error_message_theme.clone() }
-pub fn get_hostname_art_theme() -> Theme { hostname_art_theme.clone() }
+pub fn get_base_theme_ref() -> &'static Theme {
+	&base_theme
+}
+pub fn get_base_theme() -> Theme {
+	base_theme.clone()
+}
+pub fn get_accent_message_theme() -> Theme {
+	accent_message_theme.clone()
+}
+pub fn get_edit_view_theme() -> Theme {
+	edit_view_theme.clone()
+}
+pub fn get_error_message_theme() -> Theme {
+	error_message_theme.clone()
+}
+pub fn get_hostname_art_theme() -> Theme {
+	hostname_art_theme.clone()
+}

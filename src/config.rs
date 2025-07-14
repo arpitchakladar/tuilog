@@ -1,13 +1,12 @@
-use std::path::{
-	Path,
-	PathBuf,
-};
-use gethostname::gethostname;
-use serde::Deserialize;
-use lazy_static::lazy_static;
 use cursive::theme::BaseColor;
+use gethostname::gethostname;
+use lazy_static::lazy_static;
+use serde::Deserialize;
+use std::path::{Path, PathBuf};
 
-fn default_cache_dir() -> String { "/var/cache/tuilog".to_string() }
+fn default_cache_dir() -> String {
+	"/var/cache/tuilog".to_string()
+}
 fn default_ascii_art_config() -> AsciiArt {
 	AsciiArt {
 		background: None,
@@ -15,7 +14,9 @@ fn default_ascii_art_config() -> AsciiArt {
 		error_icon: None,
 	}
 }
-fn default_base_color() -> BaseColor { BaseColor::White }
+fn default_base_color() -> BaseColor {
+	BaseColor::White
+}
 
 #[derive(Deserialize)]
 struct Config {
@@ -38,7 +39,7 @@ struct AsciiArt {
 }
 
 fn deserialize_base_color<'de, D>(
-	deserializer: D
+	deserializer: D,
 ) -> Result<BaseColor, D::Error>
 where
 	D: serde::Deserializer<'de>,
@@ -52,11 +53,10 @@ where
 		"Magenta" => Ok(BaseColor::Magenta),
 		"Cyan" => Ok(BaseColor::Cyan),
 		"White" => Ok(BaseColor::White),
-		color => Err(
-			serde::de::Error::custom(
-				format!("Invalid color: {}", color)
-			)
-		),
+		color => Err(serde::de::Error::custom(format!(
+			"Invalid color: {}",
+			color
+		))),
 	}
 }
 

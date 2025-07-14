@@ -1,24 +1,21 @@
 pub mod background;
-pub mod theme;
-pub mod content_box;
-pub mod message;
-pub mod utils;
-pub mod session;
-pub mod config;
-pub mod error;
-pub mod system_control;
 pub mod cache;
+pub mod config;
+pub mod content_box;
+pub mod error;
+pub mod message;
+pub mod session;
+pub mod system_control;
+pub mod theme;
+pub mod utils;
 
-use background::draw_background_ascii_art;
-use theme::get_base_theme;
-use content_box::{
-	draw_content_box,
-	set_default_values,
-};
 use crate::error::DrawTUILogResult;
+use background::draw_background_ascii_art;
+use content_box::{draw_content_box, set_default_values};
+use theme::get_base_theme;
 
-use cursive::views::StackView;
 use cursive::view::Resizable;
+use cursive::views::StackView;
 
 fn main() {
 	let mut siv = cursive::default();
