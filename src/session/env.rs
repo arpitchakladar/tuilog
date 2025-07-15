@@ -13,7 +13,7 @@ use users::User;
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
 use crate::utils::get_current_tty_path;
 
-pub fn set_environment(user: &User) -> TUILogResult<()> {
+pub fn set_env(user: &User) -> TUILogResult<()> {
 	let shell_path = user
 		.shell()
 		.to_str()

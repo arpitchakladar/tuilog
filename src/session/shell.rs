@@ -5,7 +5,7 @@ use users::os::unix::UserExt;
 use users::User;
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
-use crate::session::{set_environment, set_process_ids};
+use crate::session::{set_env, set_process_ids};
 use crate::state::Session;
 
 fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
@@ -45,7 +45,7 @@ pub fn spawn_shell_session(user: &User, session: &Session) -> TUILogResult<()> {
 		}
 		ForkResult::Child => {
 			set_process_ids(&user)?;
-			set_environment(&user)?;
+			set_env(&user)?;
 			spawn_session(&user, &session)?;
 		}
 	};

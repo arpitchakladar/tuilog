@@ -71,9 +71,52 @@ export TUILOG_CONFIG_DIR=$(pwd)/assets
 			options.services.displayManager.tuilog = {
 				enable = lib.mkEnableOption "Enable TUILog login manager.";
 				ttys = lib.mkOption {
-					description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
 					type = lib.types.listOf lib.types.int;
+					description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
 					default = [ 1 ];
+				};
+				config = {
+					cache_dir = lib.mkOption {
+						type = lib.types.str;
+						description = "Path to the cache directory for tuilog.";
+						default = "/var/cache/tuilog";
+					};
+					ascii_art = {
+						background = lib.mkOption {
+							type = lib.types.str;
+							description = "Path to the background ascii art under /etc/tuilog.";
+							default = "background/nixos.txt";
+						};
+						background_art_color = lib.mkOption {
+							type = lib.types.str;
+							description = "Foreground color of the background ascii art.";
+							default = "White";
+						};
+						error_icon = lib.mkOption {
+							type = lib.types.str;
+							description = "Path to the background ascii art under /etc/tuilog.";
+							default = "icons/error.txt";
+						};
+					};
+					sessions = {
+						type = lib.types.listOf (lib.types.submodule {
+							name = lib.mkOption {
+								type = lib.types.str;
+								description = "Display name of the session.";
+							};
+							exec = lib.mkOption {
+								type = lib.types.str;
+								description = "The command to start the session.";
+							};
+						});
+						description = "Add sessions for tuilog.";
+						default = [
+							{
+								name = "shell";
+								exec = "";
+							}
+						];
+					};
 				};
 			};
 
@@ -113,9 +156,26 @@ export TUILOG_CONFIG_DIR=$(pwd)/assets
 					self.packages."x86_64-linux".tuilog
 				];
 
-				environment.etc.tuilog = {
-					source = ./assets;
+				environment.etc."tuilog/background" = {
+					source = ./assets/background;
 				};
+				environment.etc."tuilog/icons" = {
+					source = ./assets/icons;
+				};
+				environment.etc."config.toml".text = with config.services.displayManager.tuilog.config; ''
+cache_dir = "${cache_dir}"
+
+[ascii_art]
+background = "${ascii_art.background}"
+background_art_color = "${ascii_art.background_art_color}"
+error_icon = "${ascii_art.error_icon}"
+
+${lib.concatMapStringsSep "\n" (session: "
+[[sessions]]
+name = \"${session.name}\"
+exec = \"${session.exec}\"
+") sessions}
+'';
 
 				security.pam.services.tuilog = {
 					text = ''
