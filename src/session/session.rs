@@ -5,8 +5,8 @@ use crate::session::add_xsessions;
 
 #[derive(Clone)]
 pub enum SessionType {
-	DefaultShell,
-	Shell,
+	DefaultTerminal,
+	Terminal,
 	Xsession,
 }
 
@@ -25,7 +25,7 @@ lazy_static! {
 			Session {
 				name: "shell".to_string(),
 				exec: "".to_string(),
-				session_type: SessionType::DefaultShell,
+				session_type: SessionType::DefaultTerminal,
 			},
 		);
 		add_xsessions(&mut cur_sessions);

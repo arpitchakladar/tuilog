@@ -1,7 +1,8 @@
 use nix::sys::wait::waitpid;
 use nix::unistd::{execvp, fork, ForkResult};
 use std::ffi::CString;
-use users::{os::unix::UserExt, User};
+use users::os::unix::UserExt;
+use users::User;
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
 use crate::session::{set_environment, set_process_ids, Session};
@@ -10,7 +11,7 @@ fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 	let shell_path = user
 		.shell()
 		.to_str()
-		.tuilog_err(TUILogError::LoginShellFailed)?;
+		.tuilog_err(TUILogError::TerminalSessionFailed)?;
 	let c_shell_path = CString::new(shell_path).unwrap();
 
 	let args = vec![
@@ -24,18 +25,22 @@ fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 		.unwrap(),
 	];
 
-	execvp(&args[0], &args).tuilog_err(TUILogError::LoginSessionFailed)?;
+	execvp(&args[0], &args).tuilog_err(TUILogError::TerminalSessionFailed)?;
 
 	Ok(())
 }
 
-pub fn spawn_shell_session(user: &User, session: Session) -> TUILogResult<()> {
+pub fn spawn_terminal_session(
+	user: &User,
+	session: Session,
+) -> TUILogResult<()> {
 	let proc_type =
-		unsafe { fork().tuilog_err(TUILogError::LoginSessionFailed)? };
+		unsafe { fork().tuilog_err(TUILogError::TerminalSessionFailed)? };
 
 	match proc_type {
 		ForkResult::Parent { child } => {
-			waitpid(child, None).tuilog_err(TUILogError::LoginSessionFailed)?;
+			waitpid(child, None)
+				.tuilog_err(TUILogError::TerminalSessionFailed)?;
 		}
 		ForkResult::Child => {
 			set_process_ids(&user)?;
@@ -47,15 +52,15 @@ pub fn spawn_shell_session(user: &User, session: Session) -> TUILogResult<()> {
 	Ok(())
 }
 
-pub fn spawn_default_shell_session(
+pub fn spawn_default_terminal_session(
 	user: &User,
 	mut session: Session,
 ) -> TUILogResult<()> {
 	session.exec = user
 		.shell()
 		.to_str()
-		.tuilog_err(TUILogError::LoginShellFailed)?
+		.tuilog_err(TUILogError::TerminalSessionFailed)?
 		.to_string();
 
-	spawn_shell_session(user, session)
+	spawn_terminal_session(user, session)
 }

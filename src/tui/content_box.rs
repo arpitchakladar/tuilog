@@ -13,7 +13,7 @@ use crate::error::DrawTUILogResult;
 use crate::session::{sessions, start_session, Session};
 use crate::state::{get_default_options, title};
 use crate::system_control::{reboot, shutdown};
-use crate::ui::{
+use crate::tui::{
 	get_accent_message_theme, get_edit_view_theme, get_error_message_theme,
 	get_hostname_art_theme,
 };

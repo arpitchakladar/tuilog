@@ -1,6 +1,6 @@
 use cursive::Cursive;
 
-use crate::ui::draw_error_message;
+use crate::tui::draw_error_message;
 
 pub type TUILogResult<T> = Result<T, TUILogError>;
 
@@ -9,11 +9,13 @@ pub enum TUILogError {
 	AuthenticationFailed,
 	Unauthorized,
 	UserNotFound,
-	LoginShellFailed,
 	X11SessionFailed,
 	InvalidSessionOption,
-	LoginSessionFailed,
+	TerminalSessionFailed,
+	TerminalInputOutputSetupFailed,
 	BackgroundArtFailed,
+	PrivilegeDropFailed,
+	EnvironmentSetupFailed,
 	ShutdownFailed,
 	RebootFailed,
 	DBUSConnectionFailed,
@@ -50,10 +52,20 @@ impl TUILogError {
 			TUILogError::UserNotFound => {
 				"No user found with the given username."
 			}
-			TUILogError::LoginShellFailed => "Failed to start login shell.",
+			TUILogError::TerminalSessionFailed => {
+				"Failed to start terminal session."
+			}
+			TUILogError::TerminalInputOutputSetupFailed => {
+				"Failed to redirect standard input and output to terminal."
+			}
 			TUILogError::X11SessionFailed => "Failed to start xserver.",
 			TUILogError::InvalidSessionOption => "Invalid session selected.",
-			TUILogError::LoginSessionFailed => "Failed to start session.",
+			TUILogError::PrivilegeDropFailed => {
+				"Failed to drop user priviledges for session."
+			}
+			TUILogError::EnvironmentSetupFailed => {
+				"Failed to setup user environment for session."
+			}
 			TUILogError::BackgroundArtFailed => {
 				"Failed to draw background art."
 			}

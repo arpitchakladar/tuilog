@@ -6,7 +6,7 @@ use cursive::Cursive;
 use std::fs;
 
 use crate::state::error_icon_ascii_art_path;
-use crate::ui::get_error_message_theme;
+use crate::tui::get_error_message_theme;
 
 pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 	let mut error_box_layout = LinearLayout::vertical();

@@ -6,7 +6,7 @@ use std::fs;
 
 use crate::error::{TUILogError, TUILogResult};
 use crate::state::{background_ascii_art_color, background_ascii_art_path};
-use crate::ui::get_base_theme_ref;
+use crate::tui::get_base_theme_ref;
 
 pub fn draw_background_ascii_art(stack: &mut StackView) -> TUILogResult<()> {
 	match &*background_ascii_art_path {

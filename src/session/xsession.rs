@@ -37,7 +37,7 @@ pub fn add_xsessions(sessions: &mut IndexMap<String, Session>) {
 									session_type: if terminal {
 										SessionType::Xsession
 									} else {
-										SessionType::Shell
+										SessionType::Terminal
 									},
 								},
 							);

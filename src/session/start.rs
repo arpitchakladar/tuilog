@@ -6,7 +6,10 @@ use std::sync::Arc;
 use users::{get_user_by_name, User};
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
-use crate::session::{spawn_default_shell_session, Session, SessionType};
+use crate::session::{
+	spawn_default_terminal_session, spawn_terminal_session, Session,
+	SessionType,
+};
 use crate::state::set_default_options;
 
 fn auth_user<'a>(
@@ -60,10 +63,10 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 	siv.quit();
 
 	match session.session_type {
-		SessionType::DefaultShell => {
-			spawn_default_shell_session(&user, session)
+		SessionType::DefaultTerminal => {
+			spawn_default_terminal_session(&user, session)
 		}
-		SessionType::Shell => spawn_shell_session(&user, session),
+		SessionType::Terminal => spawn_terminal_session(&user, session),
 		SessionType::Xsession => todo!(),
 	}?;
 

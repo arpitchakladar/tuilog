@@ -2,11 +2,11 @@ pub mod error;
 pub mod session;
 pub mod state;
 pub mod system_control;
-pub mod ui;
+pub mod tui;
 pub mod utils;
 
 use crate::error::DrawTUILogResult;
-use crate::ui::{
+use crate::tui::{
 	draw_background_ascii_art, draw_content_box, get_base_theme,
 	set_default_values,
 };
