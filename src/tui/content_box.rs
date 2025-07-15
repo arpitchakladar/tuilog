@@ -79,10 +79,12 @@ pub fn draw_content_box(stack: &mut StackView) {
 
 	let mut session_select_width = 0;
 
-	for session in sessions.iter() {
+	for (i, session) in sessions.iter().enumerate() {
 		session_select_width = max(session.name.len(), session_select_width);
-		session_select.add_item(session.name.clone(), session);
+		session_select.add_item(session.name.clone(), i);
 	}
+
+	session_select.set_selection(0);
 
 	// NOTE: the end decorators update this on changing decorators
 	session_select_width += 4;
@@ -130,7 +132,7 @@ pub fn draw_content_box(stack: &mut StackView) {
 							session_select
 								.decorators("", "")
 								.autojump()
-								.on_submit(|siv: &mut Cursive, _: &Session| {
+								.on_submit(|siv, _| {
 									siv.focus_name("username").ok();
 								})
 								.popup()

@@ -7,7 +7,7 @@ use users::{get_user_by_name, User};
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
 use crate::session::spawn_shell_session;
-use crate::state::{set_default_options, Session};
+use crate::state::{set_default_options, sessions, Session};
 
 fn auth_user<'a>(
 	username: &'a str,
@@ -45,8 +45,11 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		.call_on_name("password", get_view_content)
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
 	let session = siv
-		.call_on_name("session", |view: &mut SelectView<Session>| {
-			view.selection()
+		.call_on_name("session", |view: &mut SelectView<usize>| -> Option<&'static Session> {
+			match view.selection() {
+				Some(i) => sessions.get(*i),
+				None => None,
+			}
 		})
 		.tuilog_err(TUILogError::InvalidSessionOption)?
 		.tuilog_err(TUILogError::InvalidSessionOption)?;
