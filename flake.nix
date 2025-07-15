@@ -100,13 +100,15 @@ export TUILOG_CONFIG_DIR=$(pwd)/assets
 					};
 					sessions = lib.mkOption {
 						type = lib.types.listOf (lib.types.submodule {
-							name = lib.mkOption {
-								type = lib.types.str;
-								description = "Display name of the session.";
-							};
-							exec = lib.mkOption {
-								type = lib.types.str;
-								description = "The command to start the session.";
+							options = {
+								name = lib.mkOption {
+									type = lib.types.str;
+									description = "Display name of the session.";
+								};
+								exec = lib.mkOption {
+									type = lib.types.str;
+									description = "The command to start the session.";
+								};
 							};
 						});
 						description = "Add sessions for tuilog.";
