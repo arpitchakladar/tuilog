@@ -1,7 +1,7 @@
-mod environment;
+mod env;
 mod shell;
 mod start;
 
-pub use environment::*;
+pub use env::*;
 pub use shell::*;
 pub use start::*;
