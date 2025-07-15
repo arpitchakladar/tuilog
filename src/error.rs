@@ -9,10 +9,9 @@ pub enum TUILogError {
 	AuthenticationFailed,
 	Unauthorized,
 	UserNotFound,
-	X11SessionFailed,
 	InvalidSessionOption,
-	TerminalSessionFailed,
-	TerminalInputOutputSetupFailed,
+	ShellSessionFailed,
+	ShellInputOutputSetupFailed,
 	BackgroundArtFailed,
 	PrivilegeDropFailed,
 	EnvironmentSetupFailed,
@@ -52,13 +51,12 @@ impl TUILogError {
 			TUILogError::UserNotFound => {
 				"No user found with the given username."
 			}
-			TUILogError::TerminalSessionFailed => {
+			TUILogError::ShellSessionFailed => {
 				"Failed to start terminal session."
 			}
-			TUILogError::TerminalInputOutputSetupFailed => {
+			TUILogError::ShellInputOutputSetupFailed => {
 				"Failed to redirect standard input and output to terminal."
 			}
-			TUILogError::X11SessionFailed => "Failed to start xserver.",
 			TUILogError::InvalidSessionOption => "Invalid session selected.",
 			TUILogError::PrivilegeDropFailed => {
 				"Failed to drop user priviledges for session."

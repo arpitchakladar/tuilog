@@ -5,13 +5,14 @@ use users::os::unix::UserExt;
 use users::User;
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
-use crate::session::{set_environment, set_process_ids, Session};
+use crate::session::{set_environment, set_process_ids};
+use crate::state::Session;
 
 fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 	let shell_path = user
 		.shell()
 		.to_str()
-		.tuilog_err(TUILogError::TerminalSessionFailed)?;
+		.tuilog_err(TUILogError::ShellSessionFailed)?;
 	let c_shell_path = CString::new(shell_path).unwrap();
 
 	let args = vec![
@@ -19,28 +20,31 @@ fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 		CString::new("-l").unwrap(),
 		CString::new("-c").unwrap(),
 		CString::new(format!(
-			"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
-			&session.exec,
+			"stty sane; tput sgr0; tput cnorm; clear; {}",
+			if session.exec.is_empty() {
+				"".to_string()
+			} else {
+				format!("exec {} -l", session.exec)
+			},
 		))
 		.unwrap(),
 	];
 
-	execvp(&args[0], &args).tuilog_err(TUILogError::TerminalSessionFailed)?;
+	execvp(&args[0], &args).tuilog_err(TUILogError::ShellSessionFailed)?;
 
 	Ok(())
 }
 
-pub fn spawn_terminal_session(
+pub fn spawn_shell_session(
 	user: &User,
-	session: Session,
+	session: &Session,
 ) -> TUILogResult<()> {
 	let proc_type =
-		unsafe { fork().tuilog_err(TUILogError::TerminalSessionFailed)? };
+		unsafe { fork().tuilog_err(TUILogError::ShellSessionFailed)? };
 
 	match proc_type {
 		ForkResult::Parent { child } => {
-			waitpid(child, None)
-				.tuilog_err(TUILogError::TerminalSessionFailed)?;
+			waitpid(child, None).tuilog_err(TUILogError::ShellSessionFailed)?;
 		}
 		ForkResult::Child => {
 			set_process_ids(&user)?;
@@ -50,17 +54,4 @@ pub fn spawn_terminal_session(
 	};
 
 	Ok(())
-}
-
-pub fn spawn_default_terminal_session(
-	user: &User,
-	mut session: Session,
-) -> TUILogResult<()> {
-	session.exec = user
-		.shell()
-		.to_str()
-		.tuilog_err(TUILogError::TerminalSessionFailed)?
-		.to_string();
-
-	spawn_terminal_session(user, session)
 }

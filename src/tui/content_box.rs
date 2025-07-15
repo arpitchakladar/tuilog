@@ -10,8 +10,8 @@ use std::cmp::max;
 use text_to_ascii_art::to_art;
 
 use crate::error::DrawTUILogResult;
-use crate::session::{sessions, start_session, Session};
-use crate::state::{get_default_options, title};
+use crate::session::start_session;
+use crate::state::{get_default_options, title, sessions, Session};
 use crate::system_control::{reboot, shutdown};
 use crate::tui::{
 	get_accent_message_theme, get_edit_view_theme, get_error_message_theme,
@@ -79,9 +79,9 @@ pub fn draw_content_box(stack: &mut StackView) {
 
 	let mut session_select_width = 0;
 
-	for (session_name, session) in sessions.iter() {
-		session_select_width = max(session_name.len(), session_select_width);
-		session_select.add_item(session_name.clone(), session.clone());
+	for session in sessions.iter() {
+		session_select_width = max(session.name.len(), session_select_width);
+		session_select.add_item(session.name.clone(), session);
 	}
 
 	// NOTE: the end decorators update this on changing decorators
@@ -130,7 +130,7 @@ pub fn draw_content_box(stack: &mut StackView) {
 							session_select
 								.decorators("", "")
 								.autojump()
-								.on_submit(|siv, _| {
+								.on_submit(|siv: &mut Cursive, _: &Session| {
 									siv.focus_name("username").ok();
 								})
 								.popup()
@@ -211,7 +211,7 @@ pub fn set_default_values(siv: &mut Cursive) {
 
 	if let Some(ref session_name) = default_options.session_name {
 		siv.call_on_name("session", |view: &mut SelectView<Session>| {
-			if let Some(session_index) = sessions.get_index_of(session_name) {
+			if let Some(session_index) = sessions.iter().position(|session| &session.name == session_name) {
 				view.set_selection(session_index);
 			}
 		});

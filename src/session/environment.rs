@@ -57,11 +57,11 @@ pub fn set_process_ids(user: &User) -> TUILogResult<()> {
 
 			// Redirect stdin, stdout, stderr to the TTY
 			dup2(tty_fd, 0)
-				.tuilog_err(TUILogError::TerminalInputOutputSetupFailed)?; // stdin
+				.tuilog_err(TUILogError::ShellInputOutputSetupFailed)?; // stdin
 			dup2(tty_fd, 1)
-				.tuilog_err(TUILogError::TerminalInputOutputSetupFailed)?; // stdout
+				.tuilog_err(TUILogError::ShellInputOutputSetupFailed)?; // stdout
 			dup2(tty_fd, 2)
-				.tuilog_err(TUILogError::TerminalInputOutputSetupFailed)?; // stderr
+				.tuilog_err(TUILogError::ShellInputOutputSetupFailed)?; // stderr
 
 			// Optional: close extra tty_fd if it's not 0,1,2
 			if tty_fd > 2 {

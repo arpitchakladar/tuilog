@@ -6,11 +6,8 @@ use std::sync::Arc;
 use users::{get_user_by_name, User};
 
 use crate::error::{TUILogError, TUILogErrorMap, TUILogResult};
-use crate::session::{
-	spawn_default_terminal_session, spawn_terminal_session, Session,
-	SessionType,
-};
-use crate::state::set_default_options;
+use crate::session::spawn_shell_session;
+use crate::state::{set_default_options, Session};
 
 fn auth_user<'a>(
 	username: &'a str,
@@ -49,10 +46,7 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 		.tuilog_err(TUILogError::AuthenticationFailed)?;
 	let session = siv
 		.call_on_name("session", |view: &mut SelectView<Session>| {
-			match view.selection() {
-				Some(session) => Some(Session::clone(&session)),
-				None => None,
-			}
+			view.selection()
 		})
 		.tuilog_err(TUILogError::InvalidSessionOption)?
 		.tuilog_err(TUILogError::InvalidSessionOption)?;
@@ -62,13 +56,7 @@ pub fn start_session(siv: &mut Cursive) -> TUILogResult<()> {
 	let (pam_client, user) = auth_user(&username, &password)?;
 	siv.quit();
 
-	match session.session_type {
-		SessionType::DefaultTerminal => {
-			spawn_default_terminal_session(&user, session)
-		}
-		SessionType::Terminal => spawn_terminal_session(&user, session),
-		SessionType::Xsession => todo!(),
-	}?;
+	spawn_shell_session(&user, &session)?;
 
 	drop(pam_client); // Close the PAM session
 	Ok(())
