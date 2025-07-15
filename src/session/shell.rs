@@ -35,10 +35,7 @@ fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 	Ok(())
 }
 
-pub fn spawn_shell_session(
-	user: &User,
-	session: &Session,
-) -> TUILogResult<()> {
+pub fn spawn_shell_session(user: &User, session: &Session) -> TUILogResult<()> {
 	let proc_type =
 		unsafe { fork().tuilog_err(TUILogError::ShellSessionFailed)? };
 
