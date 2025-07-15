@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-use crate::config::{cache_dir, cache_file};
+use crate::state::{cache_dir, cache_file};
 
 #[derive(Serialize, Deserialize)]
 pub struct Cache {

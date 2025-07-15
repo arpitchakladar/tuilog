@@ -5,8 +5,8 @@ use cursive::views::{
 use cursive::Cursive;
 use std::fs;
 
-use crate::config::error_icon_ascii_art_path;
-use crate::theme::get_error_message_theme;
+use crate::state::error_icon_ascii_art_path;
+use crate::tui::get_error_message_theme;
 
 pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 	let mut error_box_layout = LinearLayout::vertical();
@@ -26,7 +26,9 @@ pub fn draw_error_message(siv: &mut Cursive, text: &str) {
 				))
 			}
 			// TODO: Show this error to the user
-			Err(_) => eprintln!("Failed to draw error icon."),
+			Err(_) => {
+				eprintln!("Failed to draw error icon.")
+			}
 		},
 		None => {}
 	};

@@ -4,9 +4,9 @@ use cursive::views::{Canvas, Layer, StackView};
 use cursive::Printer;
 use std::fs;
 
-use crate::config::{background_ascii_art_color, background_ascii_art_path};
 use crate::error::{TUILogError, TUILogResult};
-use crate::theme::get_base_theme_ref;
+use crate::state::{background_ascii_art_color, background_ascii_art_path};
+use crate::tui::get_base_theme_ref;
 
 pub fn draw_background_ascii_art(stack: &mut StackView) -> TUILogResult<()> {
 	match &*background_ascii_art_path {

@@ -1,18 +1,15 @@
-pub mod background;
-pub mod cache;
-pub mod config;
-pub mod content_box;
 pub mod error;
-pub mod message;
-pub mod sessions;
+pub mod session;
+pub mod state;
 pub mod system_control;
-pub mod theme;
+pub mod tui;
 pub mod utils;
 
 use crate::error::DrawTUILogResult;
-use background::draw_background_ascii_art;
-use content_box::{draw_content_box, set_default_values};
-use theme::get_base_theme;
+use crate::tui::{
+	draw_background_ascii_art, draw_content_box, get_base_theme,
+	set_default_values,
+};
 
 use cursive::view::Resizable;
 use cursive::views::StackView;
