@@ -98,7 +98,7 @@ export TUILOG_CONFIG_DIR=$(pwd)/assets
 							default = "icons/error.txt";
 						};
 					};
-					sessions = {
+					sessions = lib.mkOption {
 						type = lib.types.listOf (lib.types.submodule {
 							name = lib.mkOption {
 								type = lib.types.str;
@@ -162,7 +162,7 @@ export TUILOG_CONFIG_DIR=$(pwd)/assets
 				environment.etc."tuilog/icons" = {
 					source = ./assets/icons;
 				};
-				environment.etc."config.toml".text = with config.services.displayManager.tuilog.config; ''
+				environment.etc."tuilog/config.toml".text = with config.services.displayManager.tuilog.config; ''
 cache_dir = "${cache_dir}"
 
 [ascii_art]
