@@ -12,7 +12,7 @@ use text_to_ascii_art::to_art;
 use crate::error::DrawTUILogResult;
 use crate::session::start_session;
 use crate::state::{get_default_options, sessions, title};
-use crate::system_control::{reboot, shutdown};
+use crate::sys_ctrl::{reboot, shutdown};
 use crate::tui::{
 	get_accent_message_theme, get_edit_view_theme, get_error_message_theme,
 	get_hostname_art_theme,

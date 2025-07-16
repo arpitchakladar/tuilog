@@ -20,11 +20,11 @@ fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
 		CString::new("-l").unwrap(),
 		CString::new("-c").unwrap(),
 		CString::new(format!(
-			"stty sane; tput sgr0; tput cnorm; clear; {}",
+			"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
 			if session.exec.is_empty() {
-				"".to_string()
+				shell_path
 			} else {
-				format!("exec {} -l", session.exec)
+				&session.exec
 			},
 		))
 		.unwrap(),

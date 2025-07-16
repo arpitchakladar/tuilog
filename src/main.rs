@@ -1,7 +1,7 @@
 pub mod error;
 pub mod session;
 pub mod state;
-pub mod system_control;
+pub mod sys_ctrl;
 pub mod tui;
 pub mod utils;
 
