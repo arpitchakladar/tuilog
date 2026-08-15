@@ -3,9 +3,10 @@
 
 	inputs = {
 		nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
+		devenv.url = "github:cachix/devenv";
 	};
 
-	outputs = { self, nixpkgs }:
+	outputs = { self, nixpkgs, devenv, ... } @ inputs:
 	let
 		pkgs = nixpkgs.legacyPackages."x86_64-linux";
 		shellHook = ''
@@ -15,20 +16,27 @@
 			export LDFLAGS=-L${pkgs.linux-pam}/lib:$LDFLAGS
 		'';
 	in {
-		devShells."x86_64-linux".default = pkgs.mkShell {
-			packages = with pkgs; [
-				cargo
-				rustfmt
-				clang
-				libclang.lib
-				pkg-config
-				linux-pam
-			];
+		devShells."x86_64-linux".default = devenv.lib.mkShell {
+			inherit inputs pkgs;
+			modules = [
+				{
+					# Enable devenv's built-in Rust support (provides cargo, rustfmt, rustc)
+					languages.rust.enable = true;
 
-			shellHook = ''
+					packages = with pkgs; [
+						clang
+						libclang.lib
+						pkg-config
+						linux-pam
+					];
+
+					# enterShell replaces shellHook in devenv
+					enterShell = ''
 ${shellHook}
 export TUILOG_CONFIG_DIR=$(pwd)/assets
-'';
+					'';
+				}
+			];
 		};
 
 		packages."x86_64-linux".tuilog =
@@ -200,4 +208,3 @@ exec = \"${session.exec}\"
 		};
 	};
 }
-
