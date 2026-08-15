@@ -1,210 +1,210 @@
 {
-	description = "Flake for TUILog.";
+  description = "Flake for TUILog.";
 
-	inputs = {
-		nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
-		devenv.url = "github:cachix/devenv";
-	};
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-25.05";
+    devenv.url = "github:cachix/devenv";
+  };
 
-	outputs = { self, nixpkgs, devenv, ... } @ inputs:
-	let
-		pkgs = nixpkgs.legacyPackages."x86_64-linux";
-		shellHook = ''
-			export LIBCLANG_PATH=${pkgs.libclang.lib}/lib
-			export CFLAGS=-I${pkgs.linux-pam}/include:$CFLAGS
-			export CPPFLAGS=-I${pkgs.linux-pam}/include:$CPPFLAG
-			export LDFLAGS=-L${pkgs.linux-pam}/lib:$LDFLAGS
-		'';
-	in {
-		devShells."x86_64-linux".default = devenv.lib.mkShell {
-			inherit inputs pkgs;
-			modules = [
-				{
-					# Enable devenv's built-in Rust support (provides cargo, rustfmt, rustc)
-					languages.rust.enable = true;
+  outputs = { self, nixpkgs, devenv, ... } @ inputs:
+  let
+    pkgs = nixpkgs.legacyPackages."x86_64-linux";
+    shellHook = ''
+      export LIBCLANG_PATH=${pkgs.libclang.lib}/lib
+      export CFLAGS=-I${pkgs.linux-pam}/include:$CFLAGS
+      export CPPFLAGS=-I${pkgs.linux-pam}/include:$CPPFLAG
+      export LDFLAGS=-L${pkgs.linux-pam}/lib:$LDFLAGS
+    '';
+  in {
+    devShells."x86_64-linux".default = devenv.lib.mkShell {
+      inherit inputs pkgs;
+      modules = [
+        {
+          # Enable devenv's built-in Rust support (provides cargo, rustfmt, rustc)
+          languages.rust.enable = true;
 
-					packages = with pkgs; [
-						clang
-						libclang.lib
-						pkg-config
-						linux-pam
-					];
+          packages = with pkgs; [
+            clang
+            libclang.lib
+            pkg-config
+            linux-pam
+          ];
 
-					# enterShell replaces shellHook in devenv
-					enterShell = ''
+          # enterShell replaces shellHook in devenv
+          enterShell = ''
 ${shellHook}
 export TUILOG_CONFIG_DIR=$(pwd)/assets
-					'';
-				}
-			];
-		};
+          '';
+        }
+      ];
+    };
 
-		packages."x86_64-linux".tuilog =
-		let
-			cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
-		in pkgs.rustPlatform.buildRustPackage rec {
-			name = "tuilog-${cargoToml.package.version}";
-			pname = "tuilog";
-			version = cargoToml.package.version;
-			src = ./.;
-			buildInputs = with pkgs; [
-				linux-pam
-				pkg-config
-			];
+    packages."x86_64-linux".tuilog =
+    let
+      cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+    in pkgs.rustPlatform.buildRustPackage rec {
+      name = "tuilog-${cargoToml.package.version}";
+      pname = "tuilog";
+      version = cargoToml.package.version;
+      src = ./.;
+      buildInputs = with pkgs; [
+        linux-pam
+        pkg-config
+      ];
 
-			cargoBuildOptions = [ "--release" ];
-			cargoLock.lockFile = ./Cargo.lock;
+      cargoBuildOptions = [ "--release" ];
+      cargoLock.lockFile = ./Cargo.lock;
 
-			nativeBuildInputs = with pkgs; [
-				clang
-				libclang.lib
-			];
+      nativeBuildInputs = with pkgs; [
+        clang
+        libclang.lib
+      ];
 
-			buildPhase = ''
-				${shellHook}
+      buildPhase = ''
+        ${shellHook}
 
-				cargo build --release
-			'';
+        cargo build --release
+      '';
 
-			# skip check phase
-			checkPhase = "true";
+      # skip check phase
+      checkPhase = "true";
 
-			installPhase = ''
-				mkdir -p $out/bin
-				cp target/release/tuilog $out/bin/
-			'';
-		};
+      installPhase = ''
+        mkdir -p $out/bin
+        cp target/release/tuilog $out/bin/
+      '';
+    };
 
-		nixosModules.tuilog = { lib, config, pkgs, ... }: {
-			options.services.displayManager.tuilog = {
-				enable = lib.mkEnableOption "Enable TUILog login manager.";
-				ttys = lib.mkOption {
-					type = lib.types.listOf lib.types.int;
-					description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
-					default = [ 1 ];
-				};
-				config = {
-					cache_dir = lib.mkOption {
-						type = lib.types.str;
-						description = "Path to the cache directory for tuilog.";
-						default = "/var/cache/tuilog";
-					};
-					ascii_art = {
-						background = lib.mkOption {
-							type = lib.types.str;
-							description = "Path to the background ascii art under /etc/tuilog.";
-							default = "background/nixos.txt";
-						};
-						background_art_color = lib.mkOption {
-							type = lib.types.str;
-							description = "Foreground color of the background ascii art.";
-							default = "White";
-						};
-						error_icon = lib.mkOption {
-							type = lib.types.str;
-							description = "Path to the background ascii art under /etc/tuilog.";
-							default = "icons/error.txt";
-						};
-					};
-					sessions = lib.mkOption {
-						type = lib.types.listOf (lib.types.submodule {
-							options = {
-								name = lib.mkOption {
-									type = lib.types.str;
-									description = "Display name of the session.";
-								};
-								exec = lib.mkOption {
-									type = lib.types.str;
-									description = "The command to start the session.";
-								};
-							};
-						});
-						description = "Add sessions for tuilog.";
-						default = [
-							{
-								name = "shell";
-								exec = "";
-							}
-						];
-					};
-				};
-			};
+    nixosModules.tuilog = { lib, config, pkgs, ... }: {
+      options.services.displayManager.tuilog = {
+        enable = lib.mkEnableOption "Enable TUILog login manager.";
+        ttys = lib.mkOption {
+          type = lib.types.listOf lib.types.int;
+          description = "List of virtual terminal (TTY) numbers to use for TUILog login manager.";
+          default = [ 1 ];
+        };
+        config = {
+          cache_dir = lib.mkOption {
+            type = lib.types.str;
+            description = "Path to the cache directory for tuilog.";
+            default = "/var/cache/tuilog";
+          };
+          ascii_art = {
+            background = lib.mkOption {
+              type = lib.types.str;
+              description = "Path to the background ascii art under /etc/tuilog.";
+              default = "background/nixos.txt";
+            };
+            background_art_color = lib.mkOption {
+              type = lib.types.str;
+              description = "Foreground color of the background ascii art.";
+              default = "White";
+            };
+            error_icon = lib.mkOption {
+              type = lib.types.str;
+              description = "Path to the background ascii art under /etc/tuilog.";
+              default = "icons/error.txt";
+            };
+          };
+          sessions = lib.mkOption {
+            type = lib.types.listOf (lib.types.submodule {
+              options = {
+                name = lib.mkOption {
+                  type = lib.types.str;
+                  description = "Display name of the session.";
+                };
+                exec = lib.mkOption {
+                  type = lib.types.str;
+                  description = "The command to start the session.";
+                };
+              };
+            });
+            description = "Add sessions for tuilog.";
+            default = [
+              {
+                name = "shell";
+                exec = "";
+              }
+            ];
+          };
+        };
+      };
 
-			config =
-			let
-				generateServices = tty:
-				let
-					stty = toString tty;
-				in {
-					"tuilog@tty${stty}" = {
-						description = "TUILog Login Manager for tty${stty}.";
-						after = [ "network.target" "systemd-user-sessions.service" ];
-						requires = [ "systemd-user-sessions.service" ];
-						serviceConfig = {
-							ExecStart = "${self.packages."x86_64-linux".tuilog}/bin/tuilog";
-							Restart = "always";
-							RestartSec = "0";
-							StandardInput = "tty";
-							StandardOutput = "tty";
-							TTYPath = "/dev/tty${stty}";
-							TTYReset = "yes";
-							TTYVHangup = "yes";
-							TTYVTDisallocate = "yes";
-							KillMode = "process";
-							Environment = "XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=${stty} TTY=/dev/tty${stty}";
-						};
-						wantedBy = [ "multi-user.target" ];
-					};
+      config =
+      let
+        generateServices = tty:
+        let
+          stty = toString tty;
+        in {
+          "tuilog@tty${stty}" = {
+            description = "TUILog Login Manager for tty${stty}.";
+            after = [ "network.target" "systemd-user-sessions.service" ];
+            requires = [ "systemd-user-sessions.service" ];
+            serviceConfig = {
+              ExecStart = "${self.packages."x86_64-linux".tuilog}/bin/tuilog";
+              Restart = "always";
+              RestartSec = "0";
+              StandardInput = "tty";
+              StandardOutput = "tty";
+              TTYPath = "/dev/tty${stty}";
+              TTYReset = "yes";
+              TTYVHangup = "yes";
+              TTYVTDisallocate = "yes";
+              KillMode = "process";
+              Environment = "XDG_SESSION_TYPE=tty XDG_SEAT=seat0 XDG_SESSION_CLASS=user XDG_VTNR=${stty} TTY=/dev/tty${stty}";
+            };
+            wantedBy = [ "multi-user.target" ];
+          };
 
-					"getty@tty${stty}".enable = false;
-					"autovt@tty${stty}".enable = false;
-				};
-			in lib.mkIf config.services.displayManager.tuilog.enable {
-				environment.systemPackages = with pkgs; [
-					linux-pam
-					systemd
-					self.packages."x86_64-linux".tuilog
-				];
+          "getty@tty${stty}".enable = false;
+          "autovt@tty${stty}".enable = false;
+        };
+      in lib.mkIf config.services.displayManager.tuilog.enable {
+        environment.systemPackages = with pkgs; [
+          linux-pam
+          systemd
+          self.packages."x86_64-linux".tuilog
+        ];
 
-				environment.etc."tuilog/background" = {
-					source = ./assets/background;
-				};
-				environment.etc."tuilog/icons" = {
-					source = ./assets/icons;
-				};
-				environment.etc."tuilog/config.toml".text = with config.services.displayManager.tuilog.config; ''
-cache_dir = "${cache_dir}"
+        environment.etc."tuilog/background" = {
+          source = ./assets/background;
+        };
+        environment.etc."tuilog/icons" = {
+          source = ./assets/icons;
+        };
+        environment.etc."tuilog/config.toml".text = with config.services.displayManager.tuilog.config; ''
+          cache_dir = "${cache_dir}"
 
-[ascii_art]
-background = "${ascii_art.background}"
-background_art_color = "${ascii_art.background_art_color}"
-error_icon = "${ascii_art.error_icon}"
+          [ascii_art]
+          background = "${ascii_art.background}"
+          background_art_color = "${ascii_art.background_art_color}"
+          error_icon = "${ascii_art.error_icon}"
 
-${lib.concatMapStringsSep "\n" (session: "
-[[sessions]]
-name = \"${session.name}\"
-exec = \"${session.exec}\"
-") sessions}
-'';
+          ${lib.concatMapStringsSep "\n" (session: "
+          [[sessions]]
+          name = \"${session.name}\"
+          exec = \"${session.exec}\"
+          ") sessions}
+        '';
 
-				security.pam.services.tuilog = {
-					text = ''
-						auth     required  ${pkgs.linux-pam}/lib/security/pam_unix.so
-						account  required  ${pkgs.linux-pam}/lib/security/pam_unix.so
-						password required  ${pkgs.linux-pam}/lib/security/pam_unix.so
-						session  required  ${pkgs.linux-pam}/lib/security/pam_unix.so
-						session  required  ${pkgs.systemd}/lib/security/pam_systemd.so
-						session  required  ${pkgs.linux-pam}/lib/security/pam_loginuid.so
-						session  required  ${pkgs.linux-pam}/lib/security/pam_env.so readenv=1 user_readenv=1
-						session  required  ${pkgs.linux-pam}/lib/security/pam_limits.so
-					'';
-				};
+        security.pam.services.tuilog = {
+          text = ''
+            auth     required  ${pkgs.linux-pam}/lib/security/pam_unix.so
+            account  required  ${pkgs.linux-pam}/lib/security/pam_unix.so
+            password required  ${pkgs.linux-pam}/lib/security/pam_unix.so
+            session  required  ${pkgs.linux-pam}/lib/security/pam_unix.so
+            session  required  ${pkgs.systemd}/lib/security/pam_systemd.so
+            session  required  ${pkgs.linux-pam}/lib/security/pam_loginuid.so
+            session  required  ${pkgs.linux-pam}/lib/security/pam_env.so readenv=1 user_readenv=1
+            session  required  ${pkgs.linux-pam}/lib/security/pam_limits.so
+          '';
+        };
 
-				# Iterate over each TTY and define corresponding systemd service configurations.
-				systemd.services =
-					lib.mkMerge
-						(map generateServices config.services.displayManager.tuilog.ttys);
-			};
-		};
-	};
+        # Iterate over each TTY and define corresponding systemd service configurations.
+        systemd.services =
+          lib.mkMerge
+            (map generateServices config.services.displayManager.tuilog.ttys);
+      };
+    };
+  };
 }

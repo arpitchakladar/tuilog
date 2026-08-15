@@ -9,46 +9,46 @@ use crate::session::{set_env, set_process_ids};
 use crate::state::Session;
 
 fn spawn_session(user: &User, session: &Session) -> TUILogResult<()> {
-	let shell_path = user
-		.shell()
-		.to_str()
-		.tuilog_err(TUILogError::ShellSessionFailed)?;
-	let c_shell_path = CString::new(shell_path).unwrap();
+  let shell_path = user
+    .shell()
+    .to_str()
+    .tuilog_err(TUILogError::ShellSessionFailed)?;
+  let c_shell_path = CString::new(shell_path).unwrap();
 
-	let args = vec![
-		c_shell_path,
-		CString::new("-l").unwrap(),
-		CString::new("-c").unwrap(),
-		CString::new(format!(
-			"stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
-			if session.exec.is_empty() {
-				shell_path
-			} else {
-				&session.exec
-			},
-		))
-		.unwrap(),
-	];
+  let args = vec![
+    c_shell_path,
+    CString::new("-l").unwrap(),
+    CString::new("-c").unwrap(),
+    CString::new(format!(
+      "stty sane; tput sgr0; tput cnorm; clear; exec {} -l",
+      if session.exec.is_empty() {
+        shell_path
+      } else {
+        &session.exec
+      },
+    ))
+    .unwrap(),
+  ];
 
-	execvp(&args[0], &args).tuilog_err(TUILogError::ShellSessionFailed)?;
+  execvp(&args[0], &args).tuilog_err(TUILogError::ShellSessionFailed)?;
 
-	Ok(())
+  Ok(())
 }
 
 pub fn spawn_shell_session(user: &User, session: &Session) -> TUILogResult<()> {
-	let proc_type =
-		unsafe { fork().tuilog_err(TUILogError::ShellSessionFailed)? };
+  let proc_type =
+    unsafe { fork().tuilog_err(TUILogError::ShellSessionFailed)? };
 
-	match proc_type {
-		ForkResult::Parent { child } => {
-			waitpid(child, None).tuilog_err(TUILogError::ShellSessionFailed)?;
-		}
-		ForkResult::Child => {
-			set_process_ids(&user)?;
-			set_env(&user)?;
-			spawn_session(&user, &session)?;
-		}
-	};
+  match proc_type {
+    ForkResult::Parent { child } => {
+      waitpid(child, None).tuilog_err(TUILogError::ShellSessionFailed)?;
+    }
+    ForkResult::Child => {
+      set_process_ids(&user)?;
+      set_env(&user)?;
+      spawn_session(&user, &session)?;
+    }
+  };
 
-	Ok(())
+  Ok(())
 }
